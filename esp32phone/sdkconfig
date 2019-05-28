@@ -123,8 +123,8 @@ CONFIG_MONITOR_BAUD=115200
 #
 # Example Configuration
 #
-CONFIG_ESP_WIFI_SSID="myssidtest"
-CONFIG_ESP_WIFI_PASSWORD="mypasstest"
+CONFIG_ESP_WIFI_SSID="mrxa.espconfig"
+CONFIG_ESP_WIFI_PASSWORD="hekmek33"
 
 #
 # Partition Table

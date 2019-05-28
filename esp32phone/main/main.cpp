@@ -268,21 +268,22 @@ void callback(char* topic, byte* message, unsigned int length) {
 
   // Feel free to add more if statements to control more GPIOs with MQTT
 
-  // If a message is received on the topic esp32/output, you check if the message is either "on" or "off". 
+  // If a message is received on the topic esp32phone_.../cmd
   // Changes the output state according to the message
-  if (String(topic) == (mqtt_id + "/output")) {
+  if (String(topic) == (mqtt_id + "/cmd")) {
     Serial.println("Changing output to");
     ESP_LOGI(TAG, "message received");
     Serial.print("Message arrived on topic: ");
     Serial.print(topic);
-    Serial.print(". Message: ");
     String messageTemp;
     
     for (int i = 0; i < length; i++) {
       Serial.print((char)message[i]);
       messageTemp += (char)message[i];
     }
-    Serial.println();
+    Serial.print(". Message: ");
+    Serial.println(messageTemp);
+    ESP_LOGI(TAG, "Cmd Message received: %s", messageTemp.c_str());
   } else if (String(topic) == (mqtt_id + "/config")) {
       File file = SPIFFS.open("/config", FILE_WRITE);
 
@@ -367,7 +368,7 @@ void setup(void) {
     ESP_LOGI(TAG, "Starting version " VERSION " ...");
     setup_wifi();
 
-    mqtt_id = String("mka_") + WiFi.macAddress();
+    mqtt_id = String("esp32phone_") + WiFi.macAddress();
     ESP_LOGI(TAG, "client: %s", mqtt_id.c_str());
     ESP_LOGI(TAG, "mqtt socket timeout: %d", MQTT_SOCKET_TIMEOUT);
 
