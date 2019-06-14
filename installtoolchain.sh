@@ -26,7 +26,8 @@ if [ ! -d "crosstool-NG" ] ; then
 	cd crosstool-NG
 
 	# fix file download problem:
-	cp expat-2.1.0.tar.gz crosstool-NG/.build/tarballs/expat-2.1.0.tar.gz
+	mkdir -p .build/tarballs
+	cp ../expat-2.1.0.tar.gz .build/tarballs/expat-2.1.0.tar.gz
 
 	if [ $? -ne 0 ] ; then echo "error cd crosstool-NG" ; exit 1; fi
 	./bootstrap
@@ -70,7 +71,7 @@ git submodule update --init
 if [ $? -ne 0 ] ; then echo "error git submodule update --init esp-idf failed" ; exit 1; fi
 
 
-cd $spath/esp32phone/
+cd $spath/newproject/
 if [ ! -d "components" ] ; then
 	mkdir components
 fi
@@ -86,19 +87,6 @@ cd arduino
 if [ $? -ne 0 ] ; then echo "error changing into arduino compoment" ; exit 11 ; fi
 git submodule update --init --recursive
 if [ $? -ne 0 ] ; then echo "error update arduino-esp32 submodules" ; exit 11 ; fi
-
-cd $spath/esp32phone/components
-if [ ! -d "pubsubclient/" ] ; then
-	git clone "https://github.com/knolleary/pubsubclient.git"
-	if [ $? -ne 0 ] ; then echo "error cloning pubsubclient" ; exit 11 ; fi
-
-	echo "applying large file support patch (for OTA)"
-	cd pubsubclient
-	wget "https://github.com/knolleary/pubsubclient/pull/568.patch"
-	git am 568.patch
-fi
-cd $spath/esp32phone/components/arduino/libraries
-ln -s ../../pubsubclient
 
 
 cd $spath
