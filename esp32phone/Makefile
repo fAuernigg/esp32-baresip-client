@@ -4,6 +4,7 @@
 #
 
 PROJECT_NAME := app-template
+USE_VIDEO := 1
 
 include $(IDF_PATH)/make/project.mk
 
