@@ -2,6 +2,9 @@
 #define TAG "sipphone"
 #include "esp_log.h"
 #include "sipphone.h"
+
+#ifdef ENABLE_baresip
+
 #include <re.h>
 #include <baresip.h>
 #include <string.h>
@@ -197,3 +200,8 @@ baresip_error:
 
   return false;
 }
+#else
+bool sipPhoneInit() {
+	return true;
+}
+#endif

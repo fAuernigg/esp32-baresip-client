@@ -18,8 +18,8 @@ long otaUpdateStart = 0;
 #include <StreamString.h>
 #include <HTTPUpdate.h>
 #include "i2shandler.h"
-
-
+//#include "AudioOutputI2S.h"
+#include "sipphone.h"
 
 WiFiMulti WiFiMulti;
 
@@ -198,6 +198,8 @@ void checkMqttServers() {
 }
 
 
+//AudioOutputI2S audioOut;
+
 void setup(void) {
 
     ESP_LOGI(TAG, "Starting version " VERSION " ...");
@@ -221,7 +223,13 @@ void setup(void) {
         //return;
     }
 
-    i2s_setup();
+
+    //audioOut.SetGain(0.125);
+
+    //esp-idf based
+    //i2s_setup();
+
+    //sipPhoneInit();
 }
 
 long lastMsg = 0;

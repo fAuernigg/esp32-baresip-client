@@ -71,25 +71,34 @@ git submodule update --init
 if [ $? -ne 0 ] ; then echo "error git submodule update --init esp-idf failed" ; exit 1; fi
 
 
-cd $spath/newproject/
-if [ ! -d "components" ] ; then
-	mkdir components
-fi
-cd components
-
-if [ ! -d "arduino" ] ; then
+if [ ! -d "$spath/esp32phone/components/arduino" ] ; then
 	# install arduino-esp32 as component of esp-idf
 	git clone https://github.com/espressif/arduino-esp32.git arduino
 	if [ $? -ne 0 ] ; then echo "error cloning arduino-esp32" ; exit 11 ; fi
 fi
 
-cd arduino
-if [ $? -ne 0 ] ; then echo "error changing into arduino compoment" ; exit 11 ; fi
+cd $spath/esp32phone/components
+if [ $? -ne 0 ] ; then echo "error changing into folder compoments" ; exit 11 ; fi
+
 git submodule update --init --recursive
-if [ $? -ne 0 ] ; then echo "error update arduino-esp32 submodules" ; exit 11 ; fi
+if [ $? -ne 0 ] ; then echo "error update components recursively submodules" ; exit 11 ; fi
 
+#cd $spath/esp32phone/components/ESP8266Audio
+#git submodule update --init --recursive
+#if [ $? -ne 0 ] ; then echo "error update ESP8266Audio submodules" ; exit 11 ; fi
 
-cd $spath
+#cd $spath/esp32phone/components/ESP8266_Spiram
+#git submodule update --init --recursive
+#if [ $? -ne 0 ] ; then echo "error update ESP8266Audio submodules" ; exit 11 ; fi
+
+#cd $spath/esp32phone/components/re
+#git submodule update --init --recursive
+#if [ $? -ne 0 ] ; then echo "error update libre submodules" ; exit 11 ; fi
+
+#cd $spath/esp32phone/components/rem
+#git submodule update --init --recursive
+#if [ $? -ne 0 ] ; then echo "error update librem submodules" ; exit 11 ; fi
+
 
 echo "----------------------"
 echo "installtoolchain done"

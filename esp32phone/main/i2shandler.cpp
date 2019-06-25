@@ -220,11 +220,11 @@ void example_i2s_adc_dac(void*arg)
 {
     //const esp_partition_t *data_partition = NULL;
     int i2s_read_len = EXAMPLE_I2S_READ_LEN;
-
+    size_t bytes_read, bytes_written;
+    
     //2. Record audio from ADC and save in flash
 #if RECORD_IN_FLASH_EN
     int flash_wr_size = 0;
-    size_t bytes_read, bytes_written;
     char* i2s_read_buff = (char*) calloc(i2s_read_len, sizeof(char));
     uint8_t* flash_write_buff = (uint8_t*) calloc(i2s_read_len, sizeof(char));
     i2s_adc_enable(EXAMPLE_I2S_NUM);
