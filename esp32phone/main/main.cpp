@@ -229,7 +229,7 @@ void setup(void) {
     //esp-idf based
     //i2s_setup();
 
-    //sipPhoneInit();
+    sipPhoneInit();
 }
 
 long lastMsg = 0;

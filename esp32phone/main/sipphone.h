@@ -8,7 +8,9 @@ extern "C"
 {
 #endif
 
-bool sipPhoneInit();
+#define ENABLE_baresip 1
+
+int sipPhoneInit();
 
 #ifdef __cplusplus
 }

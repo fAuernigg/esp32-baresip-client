@@ -7,5 +7,5 @@
 # please read the ESP-IDF documents if you need to do this.
 #
  
-COMPONENT_ADD_INCLUDEDIRS := ../components/arduino/ ../components/pubsubclient/ ../components/re/include ../components/rem/include ../components/baresip/include/
-CFLAGS := -DUSE_VIDEO=1
+#COMPONENT_ADD_INCLUDEDIRS := ../components/arduino/ ../components/pubsubclient/ ../components/re/include ../components/rem/include ../components/baresip/include/
+#CFLAGS := -DUSE_VIDEO=1

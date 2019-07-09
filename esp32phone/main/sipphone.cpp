@@ -91,7 +91,7 @@ void baresip_main(void* arg)
 	return;
 }
 
-bool sipPhoneInit() {
+int sipPhoneInit() {
   const char *sipTransportLayerStr = "udp";
 	const char *bfsipVersionStr = "0.1";
 	char versionBuffer[256];
@@ -201,7 +201,7 @@ baresip_error:
   return false;
 }
 #else
-bool sipPhoneInit() {
+int sipPhoneInit() {
 	return true;
 }
 #endif
