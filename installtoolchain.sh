@@ -2,7 +2,7 @@
 cd `dirname $0` 
 spath=`pwd`
 
-sudo apt-get install -y git wget make libncurses-dev flex bison gperf python python-serial gawk gperf grep gettext libncurses-dev python python-dev automake bison flex texinfo help2man libtool
+sudo apt-get install -y git wget make libncurses-dev flex bison gperf python python-serial gawk gperf grep gettext libncurses-dev python python-dev automake bison flex texinfo help2man libtool libtool-bin
 #if [ $? -ne 0 ] ; then echo "error apt install" ; exit 1; fi
 
 
@@ -19,36 +19,42 @@ fi
 
 export PATH=$PATH:$spath/xtensa-esp32-elf/bin
 
-if [ ! -d "crosstool-NG" ] ; then
-	git clone -b xtensa-1.22.x https://github.com/espressif/crosstool-NG.git
-	if [ $? -ne 0 ] ; then echo "error git clone crosstool-NG" ; exit 1; fi
-
-	cd crosstool-NG
-
-	# fix file download problem:
-	mkdir -p .build/tarballs
-	cp ../expat-2.1.0.tar.gz .build/tarballs/expat-2.1.0.tar.gz
-
-	if [ $? -ne 0 ] ; then echo "error cd crosstool-NG" ; exit 1; fi
-	./bootstrap
-	if [ $? -ne 0 ] ; then echo "error ./bootstrap" ; exit 1; fi
 
 
-	./configure --prefix=$PWD
-	if [ $? -ne 0 ] ; then echo "error ./configure --prefix=$PWD ctg" ; exit 1; fi
 
-	make install
-	if [ $? -ne 0 ] ; then echo "error ./ct-ng make install" ; exit 1; fi
+#if [ ! -d "crosstool-NG" ] ; then
+#	git clone -b xtensa-1.22.x https://github.com/espressif/crosstool-NG.git
+#	#git clone -b esp32-2019r1_ctng-1.23.x https://github.com/espressif/crosstool-NG.git
+#	if [ $? -ne 0 ] ; then echo "error git clone crosstool-NG" ; exit 1; fi
+#
+#	cd crosstool-NG
+#	if [ $? -ne 0 ] ; then echo "error cd crosstool-NG" ; exit 1; fi
+#
+#	# fix file download problem:
+#	mkdir -p .build/tarballs
+#	cp ../expat-2.1.0.tar.gz .build/tarballs/expat-2.1.0.tar.gz
+#	cp ../newlib-xtensa-newlib-2_0_0.tar.gz .build/tarballs/newlib-2.2.0.tar.gz
+#
+#	./bootstrap
+#	if [ $? -ne 0 ] ; then echo "error ./bootstrap" ; exit 1; fi
+#
+#
+#	./configure --prefix=$spath/crosstool-NG
+#	if [ $? -ne 0 ] ; then echo "error ./configure --prefix=$PWD ctg" ; exit 1; fi
+#
+#	make install
+#	if [ $? -ne 0 ] ; then echo "error ./ct-ng make install" ; exit 1; fi
+#
+#	./ct-ng xtensa-esp32-elf
+#	if [ $? -ne 0 ] ; then echo "error ./ct-ng xtensa-esp32-elf" ; exit 1; fi
+#
+#	./ct-ng build
+##	if [ $? -ne 0 ] ; then echo "error ./ct-ng build" ; exit 1; fi
+#
+#	chmod -R u+w builds/xtensa-esp32-elf
+#	if [ $? -ne 0 ] ; then echo "error chmod -R u+w builds/xtensa-esp32-elf" ; exit 1; fi
+#fi
 
-	./ct-ng xtensa-esp32-elf
-	if [ $? -ne 0 ] ; then echo "error ./ct-ng xtensa-esp32-elf" ; exit 1; fi
-
-	./ct-ng build
-	if [ $? -ne 0 ] ; then echo "error ./ct-ng build" ; exit 1; fi
-
-	chmod -R u+w builds/xtensa-esp32-elf
-	if [ $? -ne 0 ] ; then echo "error chmod -R u+w builds/xtensa-esp32-elf" ; exit 1; fi
-fi
 
 cd $spath
 if [ $? -ne 0 ] ; then echo "error cd ~/$spath" ; exit 1; fi
@@ -56,11 +62,11 @@ if [ $? -ne 0 ] ; then echo "error cd ~/$spath" ; exit 1; fi
 if [ ! -d "esp-idf" ] ; then
 	git clone --recursive https://github.com/espressif/esp-idf.git
 	if [ $? -ne 0 ] ; then echo "error  git clone esp-idf.git" ; exit 1; fi
-	git checkout release/v3.2
+	git checkout release/v3.3
 else
 	cd esp-idf
 	git pull
-	git checkout release/v3.2
+	git checkout release/v3.3
 	cd ..
 fi
 
@@ -76,6 +82,9 @@ if [ ! -d "$spath/esp32phone/components/arduino" ] ; then
 	git clone https://github.com/espressif/arduino-esp32.git arduino
 	if [ $? -ne 0 ] ; then echo "error cloning arduino-esp32" ; exit 11 ; fi
 fi
+
+python -m pip install --user -r /media/data/src/prvsrc/esp32phone/esp-idf/requirements.txt
+
 
 cd $spath/esp32phone/components
 if [ $? -ne 0 ] ; then echo "error changing into folder compoments" ; exit 11 ; fi

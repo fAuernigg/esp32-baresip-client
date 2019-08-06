@@ -5,6 +5,7 @@
 
 #ifdef ENABLE_baresip
 
+#include <net/if.h>
 #include <re.h>
 #include <baresip.h>
 #include <string.h>

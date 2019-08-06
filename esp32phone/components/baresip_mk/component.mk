@@ -22,6 +22,7 @@ CFLAGS	+= -Wshadow
 CFLAGS	+= -Waggregate-return
 CFLAGS  += -DLINUX -g -std=c99
 CFLAGS  += -Os
+CFLAGS	+= -Wno-char-subscripts
 
 CFLAGS	+= -DSHARE_PATH=\"/usr/share/baresip\"
 
