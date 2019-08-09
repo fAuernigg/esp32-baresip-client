@@ -66,6 +66,7 @@ CFLAGS	+= -Wshadow
 CFLAGS	+= -Waggregate-return
 CFLAGS  += -DLINUX -g -std=c99
 CFLAGS  += -Os
+CFLAGS  += -Wno-error=char-subscripts
 
 COMPONENT_OBJEXCLUDE = \
 					   ../re/src/main/openssl.o \

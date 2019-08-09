@@ -5,6 +5,7 @@
 
 #ifdef ENABLE_baresip
 
+typedef uint32_t u32_t;
 #include <net/if.h>
 #include <re.h>
 #include <baresip.h>
