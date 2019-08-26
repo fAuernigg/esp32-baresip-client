@@ -207,3 +207,40 @@ int sipPhoneInit() {
 	return true;
 }
 #endif
+
+// TODO: undefined
+int net_rt_list(net_rt_h *rth, void *arg) {
+	return 0;
+}
+
+
+#include <signal.h> 
+#include <pwd.h>
+
+sighandler_t signal(int signum, sighandler_t handler)
+{
+	return (sighandler_t) 0;
+}
+
+char *  getlogin(void) {
+	return "";
+}
+
+
+struct passwd	*getpwnam (const char *) {
+	return 0;
+}
+
+
+extern "C" {
+	// libre apis to load modules (which we use statically)
+	void *_mod_open(const char *name) {
+		return 0;
+	}
+
+	void *_mod_sym(void *h, const char *symbol) {
+		return 0;
+	}
+	void  _mod_close(void *h) {
+	}
+}

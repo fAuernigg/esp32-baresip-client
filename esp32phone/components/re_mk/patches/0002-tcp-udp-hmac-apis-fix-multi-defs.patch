@@ -1,0 +1,53 @@
+From c377e6a89b255a10c38ca0bc93206f6e997c155d Mon Sep 17 00:00:00 2001
+From: Franz Auernigg <f.auernigg@commend.com>
+Date: Mon, 26 Aug 2019 13:23:36 +0200
+Subject: [PATCH] tcp,udp,hmac apis: fix multi defs
+
+---
+ include/re_hmac.h | 1 +
+ include/re_tcp.h  | 2 ++
+ include/re_udp.h  | 3 +++
+ 3 files changed, 6 insertions(+)
+
+diff --git a/include/re_hmac.h b/include/re_hmac.h
+index 25e7e2e..50b9d83 100644
+--- a/include/re_hmac.h
++++ b/include/re_hmac.h
+@@ -4,6 +4,7 @@
+  * Copyright (C) 2010 Creytiv.com
+  */
+ 
++#define hmac_sha1 re_hmac_sha1
+ 
+ void hmac_sha1(const uint8_t *k,   /* secret key */
+ 	       size_t         lk,  /* length of the key in bytes */
+diff --git a/include/re_tcp.h b/include/re_tcp.h
+index 98dba71..ad00543 100644
+--- a/include/re_tcp.h
++++ b/include/re_tcp.h
+@@ -7,6 +7,8 @@ struct sa;
+ struct tcp_sock;
+ struct tcp_conn;
+ 
++#define tcp_connect re_tcp_connect
++#define tcp_accept re_tcp_accept
+ 
+ /**
+  * Defines the incoming TCP connection handler
+diff --git a/include/re_udp.h b/include/re_udp.h
+index f796138..7f2e92a 100644
+--- a/include/re_udp.h
++++ b/include/re_udp.h
+@@ -9,6 +9,9 @@ struct sa;
+ struct udp_sock;
+ 
+ 
++#define udp_connect re_udp_connect
++#define udp_send 	re_udp_send
++
+ /**
+  * Defines the UDP Receive handler
+  *
+-- 
+2.17.1
+

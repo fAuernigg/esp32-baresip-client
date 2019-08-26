@@ -46,7 +46,11 @@ COMPONENT_SRCDIRS = \
 ../re/src/http \
 ../re/src/net \
 ../re/src/net/posix \
-../re/src/telev 
+../re/src/telev \
+../re/src/md5 \
+../re/src/sha \
+../re/src/crc32 \
+
 
 CFLAGS	+= -DHAVE_SELECT -DHAVE_SELECT_H
 CFLAGS	+= -DHAVE_INET_NTOP -DHAVE_INET_PTON -DHAVE_PTHREAD -DHAVE_STRERROR_R
@@ -71,7 +75,6 @@ CFLAGS  += -Wno-error=char-subscripts
 COMPONENT_OBJEXCLUDE = \
 					   ../re/src/main/openssl.o \
 					   ../re/src/main/epoll.o \
-					   ../re/src/md5/md5.o \
 					   ../re/src/dns/res.o \
 					   ../re/src/mod/dl.o \
 					   ../re/src/lock/rwlock.o \
