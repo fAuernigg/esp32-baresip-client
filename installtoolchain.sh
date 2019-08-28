@@ -16,97 +16,38 @@ if  [ ! -d "xtensa-esp32-elf" ] ; then
 
 	if  [ ! -d "xtensa-esp32-elf" ] ; then echo "error xtensa-esp32-elf download untar failed" ; exit 1; fi
 fi
-
 export PATH=$PATH:$spath/xtensa-esp32-elf/bin
 
 
-
-
-#if [ ! -d "crosstool-NG" ] ; then
-#	git clone -b xtensa-1.22.x https://github.com/espressif/crosstool-NG.git
-#	#git clone -b esp32-2019r1_ctng-1.23.x https://github.com/espressif/crosstool-NG.git
-#	if [ $? -ne 0 ] ; then echo "error git clone crosstool-NG" ; exit 1; fi
-#
-#	cd crosstool-NG
-#	if [ $? -ne 0 ] ; then echo "error cd crosstool-NG" ; exit 1; fi
-#
-#	# fix file download problem:
-#	mkdir -p .build/tarballs
-#	cp ../expat-2.1.0.tar.gz .build/tarballs/expat-2.1.0.tar.gz
-#	cp ../newlib-xtensa-newlib-2_0_0.tar.gz .build/tarballs/newlib-2.2.0.tar.gz
-#
-#	./bootstrap
-#	if [ $? -ne 0 ] ; then echo "error ./bootstrap" ; exit 1; fi
-#
-#
-#	./configure --prefix=$spath/crosstool-NG
-#	if [ $? -ne 0 ] ; then echo "error ./configure --prefix=$PWD ctg" ; exit 1; fi
-#
-#	make install
-#	if [ $? -ne 0 ] ; then echo "error ./ct-ng make install" ; exit 1; fi
-#
-#	./ct-ng xtensa-esp32-elf
-#	if [ $? -ne 0 ] ; then echo "error ./ct-ng xtensa-esp32-elf" ; exit 1; fi
-#
-#	./ct-ng build
-##	if [ $? -ne 0 ] ; then echo "error ./ct-ng build" ; exit 1; fi
-#
-#	chmod -R u+w builds/xtensa-esp32-elf
-#	if [ $? -ne 0 ] ; then echo "error chmod -R u+w builds/xtensa-esp32-elf" ; exit 1; fi
-#fi
-
-
 cd $spath
+git submodule update --init
 if [ $? -ne 0 ] ; then echo "error cd ~/$spath" ; exit 1; fi
 
-if [ ! -d "esp-idf" ] ; then
-	git clone --recursive https://github.com/espressif/esp-idf.git
-	if [ $? -ne 0 ] ; then echo "error  git clone esp-idf.git" ; exit 1; fi
-	git checkout release/v3.3
-else
-	cd esp-idf
-	git pull
-	git checkout release/v3.3
-	cd ..
-fi
-
-cd esp-idf
+cd $spath/esp-idf/
 if [ $? -ne 0 ] ; then echo "error cd esp-idf" ; exit 1; fi
-
 git submodule update --init
 if [ $? -ne 0 ] ; then echo "error git submodule update --init esp-idf failed" ; exit 1; fi
 
+git checkout release/v3.2
 
-if [ ! -d "$spath/esp32phone/components/arduino" ] ; then
-	# install arduino-esp32 as component of esp-idf
-	git clone https://github.com/espressif/arduino-esp32.git arduino
-	if [ $? -ne 0 ] ; then echo "error cloning arduino-esp32" ; exit 11 ; fi
-fi
-
-python -m pip install --user -r /media/data/src/prvsrc/esp32phone/esp-idf/requirements.txt
+cd "$spath"
+python -m pip install --user -r esp-idf/requirements.txt
 
 
-cd $spath/esp32phone/components
-if [ $? -ne 0 ] ; then echo "error changing into folder compoments" ; exit 11 ; fi
+cd $spath/esp32phone/components/re/
+if [ $? -ne 0 ] ; then echo "error git submodule update --init (re) failed" ; exit 1; fi
 
-git submodule update --init --recursive
-if [ $? -ne 0 ] ; then echo "error update components recursively submodules" ; exit 11 ; fi
+git checkout "commend_v0.5.8"
 
-#cd $spath/esp32phone/components/ESP8266Audio
-#git submodule update --init --recursive
-#if [ $? -ne 0 ] ; then echo "error update ESP8266Audio submodules" ; exit 11 ; fi
+patch -p1 -i ../re_mk/patches/0001-fix-build-for-esp32.patch
+patch -p1 -i ../re_mk/patches/0002-tcp-udp-hmac-apis-fix-multi-defs.patch
 
-#cd $spath/esp32phone/components/ESP8266_Spiram
-#git submodule update --init --recursive
-#if [ $? -ne 0 ] ; then echo "error update ESP8266Audio submodules" ; exit 11 ; fi
+cd $spath/esp32phone/components/baresip/
+if [ $? -ne 0 ] ; then echo "error git submodule update --init (re) failed" ; exit 1; fi
 
-#cd $spath/esp32phone/components/re
-#git submodule update --init --recursive
-#if [ $? -ne 0 ] ; then echo "error update libre submodules" ; exit 11 ; fi
+git checkout "esp32_v0.5.10"
 
-#cd $spath/esp32phone/components/rem
-#git submodule update --init --recursive
-#if [ $? -ne 0 ] ; then echo "error update librem submodules" ; exit 11 ; fi
+cd $spath
 
 
 echo "----------------------"

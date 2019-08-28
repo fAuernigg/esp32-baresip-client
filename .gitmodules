@@ -13,6 +13,15 @@
 [submodule "esp32phone/components/baresip"]
 	path = esp32phone/components/baresip
 	url = ssh://git@source.commend.co/third_party/baresip.git
+	branch = esp32_v0.5.10
 [submodule "esp32phone/components/re"]
 	path = esp32phone/components/re
 	url = ssh://git@source.commend.com/third_party/libre.git
+	branch = commend_v0.5.8
+[submodule "esp32phone/components/arduino-esp32"]
+	path = esp32phone/components/arduino-esp32
+	url = https://github.com/espressif/arduino-esp32.git
+[submodule "esp-idf"]
+	path = esp-idf
+	url = https://github.com/espressif/esp-idf.git
+	branch = release/v3.2
