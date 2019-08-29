@@ -1,7 +1,7 @@
 #define VERSION "0.1"
 #define TAG "esp32phone"
 
-#define MQTT_SOCKET_TIMEOUT 60
+#define MQTT_SOCKET_TIMEOUT 120
 long otaUpdateStart = 0;
 #define OTA_TIMEOUT (MQTT_SOCKET_TIMEOUT * 1000)
 
@@ -13,7 +13,6 @@ long otaUpdateStart = 0;
 #include <SPIFFS.h>
 #include <WiFiClientSecure.h>
 #include "esp_log.h"
-#include "SPIFFS.h"
 #include <Update.h>
 #include <StreamString.h>
 #include <HTTPUpdate.h>
@@ -50,8 +49,8 @@ const char* server_root_ca =
 "AvHRAosZy5Q6XkjEGB5YGV8eAlrwDPGxrancWYaLbumR9YbK+rlmM6pZW87ipxZz\n" \
 "R8srzJmwN0jP41ZL9c8PDHIyh8bwRLtTcm1D9SZImlJnt1ir/md2cXjbDaJWFBM5\n" \
 "JDGFoqgCWjBH4d1QB7wCCZAA62RjYJsWvIjJEubSfZGL+T0yjWW06XyxV3bqxbYo\n" \
-"Ob8VZRzI9neWagqNdwvYkQsEjgfbKbYK7p2CNTUQ\n" \
-"-----END CERTIFICATE-----";
+"Ob8VZRzI9neWagqNdwvYkQsEjgfbKbYK7p2CNTUQ\n"
+ "-----END CERTIFICATE-----";
 
 
 //WiFiClient espClient;
@@ -59,12 +58,14 @@ const char* server_root_ca =
 WiFiClientSecure espClient;
 PubSubClient mqttClient(espClient);
 
-const char* mqtt_user = "mka";
-const char* mqtt_pass = "Esp32veri§SecurEDaepeikik§§*";
+const char* mqtt_user = "esp32phone";
+const char* mqtt_pass = "Xeps23v90489i§LKsecEDag_sdfikik§]";
 String mqtt_id;
 
 // for testing Pin
 const int testPin = 4;
+
+uint32_t g_lipaddr = 120301760;
 
 
 void setup_wifi() {
@@ -76,6 +77,7 @@ void setup_wifi() {
 
     WiFi.mode(WIFI_STA);
     WiFiMulti.addAP(CONFIG_ESP_WIFI_SSID, CONFIG_ESP_WIFI_PASSWORD);
+    WiFiMulti.addAP("onesip", "wifi4us!");
 }
 
 
@@ -197,7 +199,6 @@ void checkMqttServers() {
   }
 }
 
-
 //AudioOutputI2S audioOut;
 
 void setup(void) {
@@ -209,11 +210,6 @@ void setup(void) {
     ESP_LOGI(TAG, "client: %s", mqtt_id.c_str());
     ESP_LOGI(TAG, "mqtt socket timeout: %d", MQTT_SOCKET_TIMEOUT);
 
-    espClient.setCACert(server_root_ca);
-    // OTA over ssl maybe slow 
-    espClient.setTimeout(12000);
-    mqttClient.setServer(mqtt_server, port);
-    mqttClient.setCallback(callback);
 
     pinMode(testPin, OUTPUT);
 
@@ -222,14 +218,17 @@ void setup(void) {
         Serial.println("Failed to mount the file system");
         //return;
     }
-
+      
+    espClient.setCACert(server_root_ca);
+    // OTA over ssl maybe slow 
+    espClient.setTimeout(MQTT_SOCKET_TIMEOUT);
+    mqttClient.setServer(mqtt_server, port);
+    mqttClient.setCallback(callback);
 
     //audioOut.SetGain(0.125);
 
     //esp-idf based
     //i2s_setup();
-
-    sipPhoneInit();
 }
 
 long lastMsg = 0;
@@ -238,15 +237,18 @@ bool wifiConnected=false;
 void loop() {
 
     if ((WiFiMulti.run() == WL_CONNECTED)) {
-        if (!wifiConnected) {
-          Serial.println("WiFi connected");
-          Serial.println("IP address: ");
-          Serial.println(WiFi.localIP());
-          ESP_LOGI(TAG, "wifi done enabled %s", String(WiFi.localIP()).c_str());
-          wifiConnected = true;
-          setClock();
-        }
-
+      if (!wifiConnected) {
+        Serial.println("WiFi connected");
+        Serial.println("IP address: ");
+        Serial.println(WiFi.localIP());
+        ESP_LOGI(TAG, "wifi done enabled %s", String(WiFi.localIP()).c_str());
+        wifiConnected = true;
+        setClock();
+        g_lipaddr = WiFi.localIP();
+        ESP_LOGI(TAG, "IP: %u", g_lipaddr);
+        
+        sipPhoneInit();
+      }
       checkMqttServers();
 
       if (!currentlyUpdating) {

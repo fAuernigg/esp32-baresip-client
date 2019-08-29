@@ -2,6 +2,7 @@
 #define TAG "sipphone"
 #include "esp_log.h"
 #include "sipphone.h"
+#include "SPIFFS.h"
 
 #ifdef ENABLE_baresip
 
@@ -115,19 +116,23 @@ int sipPhoneInit() {
     log_enable_debug(true);
 
 	conf_path_set("/var/tmp/baresip");
+	ESP_LOGI(TAG, "Baresip %s: %d", __FUNCTION__, __LINE__);
 
 	err = conf_configure();
 	if (err) {
 		ESP_LOGE(TAG, "Could not configure baresip");
 		goto baresip_error;
 	}
+	ESP_LOGI(TAG, "Baresip %s: %d", __FUNCTION__, __LINE__);
 
 	err = baresip_init(conf_config(), false);
+	ESP_LOGI(TAG, "Baresip %s: %d", __FUNCTION__, __LINE__);
 
 	if (err) {
 		ESP_LOGE(TAG, "Could not initialize baresip");
 		goto baresip_error;
 	}
+	ESP_LOGI(TAG, "Baresip %s: %d", __FUNCTION__, __LINE__);
 
 	 if (str_isset(conf_config()->audio.audio_path)) {
 		play_set_path(baresip_player(),
@@ -202,13 +207,52 @@ baresip_error:
 
   return false;
 }
-#else
-int sipPhoneInit() {
-	return true;
-}
+
+#ifdef __cplusplus
+extern "C" {
 #endif
 
-// TODO: undefined
+	FILE *spiff_open (const char * filename, const char * modes) {
+		ESP_LOGI(TAG, "%s: %d", __FUNCTION__, __LINE__);
+		char* mode = FILE_READ;
+
+		if (String(mode).indexOf("a")>=0)
+			mode = FILE_APPEND;
+		else if (String(mode).indexOf("w")>=0)
+			mode = FILE_WRITE;
+
+		File* file = new File();
+		*file = SPIFFS.open(filename, mode);
+		if (!file) {
+			Serial.println("ERROR opening file ... with mode ...");
+			ESP_LOGE(TAG, "ERROR opening file %s with mode %s", filename, mode);
+			return 0;
+		}
+		ESP_LOGI(TAG, "%s: %d", __FUNCTION__, __LINE__);
+		return (FILE*) file;
+	}
+
+	size_t spiff_printf(FILE* f, char* message, size_t len) {
+		ESP_LOGI(TAG, "spiff_print: ...");
+		/*char* tmp = (char*) malloc(len+1);
+		snprintf(tmp, len, "%s", message);
+		ESP_LOGI(TAG, "spiff_print: %s done", tmp);
+		free(tmp);
+		return len;*/
+		return ((File*) f)->write((uint8_t*) message, len);
+	}
+
+	size_t spiff_read(FILE* f, void * buf, size_t len) {
+		return ((File*) f)->read(((uint8_t*)buf), len);
+	}
+
+	void spiff_close(FILE* f) {
+		//return;
+		((File*) f)->close();
+	}
+
+
+// TODO: use correct function instead of dummy impl
 int net_rt_list(net_rt_h *rth, void *arg) {
 	return 0;
 }
@@ -223,7 +267,7 @@ sighandler_t signal(int signum, sighandler_t handler)
 }
 
 char *  getlogin(void) {
-	return "";
+	return (char*) "";
 }
 
 
@@ -231,16 +275,63 @@ struct passwd	*getpwnam (const char *) {
 	return 0;
 }
 
-
-extern "C" {
-	// libre apis to load modules (which we use statically)
-	void *_mod_open(const char *name) {
-		return 0;
-	}
-
-	void *_mod_sym(void *h, const char *symbol) {
-		return 0;
-	}
-	void  _mod_close(void *h) {
-	}
+// libre apis to load modules (which we use statically)
+void *_mod_open(const char *name) {
+	ESP_LOGI(TAG, "%s: %d", __FUNCTION__, __LINE__);
+	return 0;
 }
+
+void *_mod_sym(void *h, const char *symbol) {
+	ESP_LOGI(TAG, "%s: %d", __FUNCTION__, __LINE__);
+	return 0;
+}
+void  _mod_close(void *h) {
+	ESP_LOGI(TAG, "%s: %d", __FUNCTION__, __LINE__);
+}
+
+
+
+const struct mod_export *mod_table[] = {
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	// TODO provide functions in table
+	/*&exports_wincons,
+	&exports_g711,
+	&exports_winwave,
+	&exports_dshow,
+	&exports_account,
+	&exports_contact,
+	&exports_menu,
+	&exports_auloop,
+	&exports_vidloop,
+	&exports_uuid,
+	&exports_stun,
+	&exports_turn,
+	&exports_ice,
+	&exports_vumeter,*/
+	NULL
+};
+
+
+#ifdef __cplusplus
+}
+#endif
+
+
+#else //ENABLE_baresip
+int sipPhoneInit() {
+	return true;
+}
+#endif

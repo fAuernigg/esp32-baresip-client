@@ -12,7 +12,7 @@
 	url = https://github.com/Gianbacchio/ESP8266_Spiram
 [submodule "esp32phone/components/baresip"]
 	path = esp32phone/components/baresip
-	url = ssh://git@source.commend.co/third_party/baresip.git
+	url = ssh://git@source.commend.com/third_party/baresip.git
 	branch = esp32_v0.5.10
 [submodule "esp32phone/components/re"]
 	path = esp32phone/components/re

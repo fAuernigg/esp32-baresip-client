@@ -26,6 +26,10 @@ CFLAGS	+= -Wno-char-subscripts
 
 CFLAGS	+= -DSHARE_PATH=\"/usr/share/baresip\"
 
+CFLAGS    += -DSTATIC=1
+CXXFLAGS  += -DSTATIC=1
+LIBS      += $(MOD_LFLAGS)
+
 COMPONENT_OBJEXCLUDE = \
 					   ../baresip/src/video.o \
 					   ../baresip/src/vidsrc.o \
