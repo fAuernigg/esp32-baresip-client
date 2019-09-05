@@ -25,8 +25,7 @@ WiFiMulti WiFiMulti;
 bool currentlyUpdating=false;
 
 // Add your MQTT Broker IP address
-const char* mqtt_server = "mrxa.ga";
-//const char* mqtt_server = "mrxa.ml";
+const char* mqtt_server = "mrxa.selfhost.eu";
 int port = 8883;
 
 
