@@ -17,7 +17,7 @@
 [submodule "esp32phone/components/re"]
 	path = esp32phone/components/re
 	url = ssh://git@source.commend.com/third_party/libre.git
-	branch = commend_v0.5.8
+	branch = esp32_v0.5.8
 [submodule "esp32phone/components/arduino-esp32"]
 	path = esp32phone/components/arduino-esp32
 	url = https://github.com/espressif/arduino-esp32.git
