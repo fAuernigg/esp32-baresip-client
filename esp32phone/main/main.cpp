@@ -18,7 +18,7 @@ long otaUpdateStart = 0;
 #include <HTTPUpdate.h>
 #include "i2shandler.h"
 //#include "AudioOutputI2S.h"
-#include "sipphone.h"
+//#include "sipphone.h"
 
 WiFiMulti WiFiMulti;
 
@@ -29,7 +29,7 @@ const char* mqtt_server = "mrxa.selfhost.eu";
 int port = 8883;
 
 
-const char* server_root_ca = 
+const char* server_root_ca =
 "-----BEGIN CERTIFICATE-----\n" \
 "MIIDSjCCAjKgAwIBAgIQRK+wgNajJ7qJMDmGLvhAazANBgkqhkiG9w0BAQUFADA/\n" \
 "MSQwIgYDVQQKExtEaWdpdGFsIFNpZ25hdHVyZSBUcnVzdCBDby4xFzAVBgNVBAMT\n" \
@@ -209,7 +209,6 @@ void setup(void) {
     ESP_LOGI(TAG, "client: %s", mqtt_id.c_str());
     ESP_LOGI(TAG, "mqtt socket timeout: %d", MQTT_SOCKET_TIMEOUT);
 
-
     pinMode(testPin, OUTPUT);
 
     if (!SPIFFS.begin(true))
@@ -217,9 +216,9 @@ void setup(void) {
         Serial.println("Failed to mount the file system");
         //return;
     }
-      
+
     espClient.setCACert(server_root_ca);
-    // OTA over ssl maybe slow 
+    // OTA over ssl maybe slow
     espClient.setTimeout(MQTT_SOCKET_TIMEOUT);
     mqttClient.setServer(mqtt_server, port);
     mqttClient.setCallback(callback);
@@ -227,7 +226,9 @@ void setup(void) {
     //audioOut.SetGain(0.125);
 
     //esp-idf based
-    //i2s_setup();
+    i2s_setup();
+
+//    sipPhoneInit();
 }
 
 long lastMsg = 0;
@@ -245,8 +246,7 @@ void loop() {
         setClock();
         g_lipaddr = WiFi.localIP();
         ESP_LOGI(TAG, "IP: %u", g_lipaddr);
-        
-        sipPhoneInit();
+//        sipPhoneInit();
       }
       checkMqttServers();
 
