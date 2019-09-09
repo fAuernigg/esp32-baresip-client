@@ -1,4 +1,4 @@
-#define VERSION "0.1"
+#define VERSION "0.2"
 #define TAG "esp32phone"
 
 #define MQTT_SOCKET_TIMEOUT 120
@@ -12,6 +12,7 @@ long otaUpdateStart = 0;
 #include <FS.h>
 #include <SPIFFS.h>
 #include <WiFiClientSecure.h>
+#include <WiFiClient.h>
 #include "esp_log.h"
 #include <Update.h>
 #include <StreamString.h>
@@ -25,8 +26,13 @@ WiFiMulti WiFiMulti;
 bool currentlyUpdating=false;
 
 // Add your MQTT Broker IP address
+#if defined MQTTSERVER && defined MQTTPORT
+const char* mqtt_server = MQTTSERVER;
+int mqtt_port = MQTTPORT;
+#else
 const char* mqtt_server = "mrxa.selfhost.eu";
-int port = 8883;
+int mqtt_port = 8883;
+#endif
 
 
 const char* server_root_ca =
@@ -52,13 +58,21 @@ const char* server_root_ca =
  "-----END CERTIFICATE-----";
 
 
-//WiFiClient espClient;
+#ifndef NOTLS
 // to enable secure communication tls
 WiFiClientSecure espClient;
+#else
+WiFiClient espClient;
+#endif
 PubSubClient mqttClient(espClient);
 
+#if defined MQTTUSER && defined MQTTPASS
+const char* mqtt_user = MQTTUSER;
+const char* mqtt_pass = MQTTPASS;
+#else
 const char* mqtt_user = "esp32phone";
 const char* mqtt_pass = "Xeps23v90489i§LKsecEDag_sdfikik§]";
+#endif
 String mqtt_id;
 
 // for testing Pin
@@ -112,8 +126,8 @@ void callback(char* topic, byte* message, unsigned int length) {
     Serial.print("Message arrived on topic: ");
     Serial.print(topic);
     String messageTemp;
-    
-    for (int i = 0; i < length; i++) {
+
+    for (int i = 0; i < (int) length; i++) {
       Serial.print((char)message[i]);
       messageTemp += (char)message[i];
     }
@@ -137,19 +151,26 @@ void callback(char* topic, byte* message, unsigned int length) {
       }
 
       file.close();
-  } else if (String(topic) == (mqtt_id + "/update") ) {      
+  } else if (String(topic) == (mqtt_id + "/update") ) {
       String messageTemp;
-      
-      for (int i = 0; i < length; i++) {
+
+      for (int i = 0; i < (int) length; i++) {
         Serial.print((char)message[i]);
         messageTemp += (char)message[i];
       }
       ESP_LOGI(TAG, "update triggered... '%s'", messageTemp.c_str());
 
       currentlyUpdating = true;
+#ifndef NOTLS
+      // to enable secure communication tls
       WiFiClientSecure client;
+#else
+      WiFiClient client;
+#endif
+#ifndef NOTLS
       client.setCACert(server_root_ca);
-      // OTA over ssl maybe slow 
+#endif
+      // OTA over ssl maybe slow
       client.setTimeout(12000);
 
       t_httpUpdate_return ret = httpUpdate.update(client, messageTemp);
@@ -181,13 +202,14 @@ void checkMqttServers() {
   // Loop until we're reconnected
   while (!mqttClient.connected() && count<2) {
     count++;
-    ESP_LOGI(TAG, "Attempting MQTT connection... %i", count);
+    ESP_LOGI(TAG, "Attempting MQTT connection... %s:%d %i", mqtt_server,
+        mqtt_port, count);
     // Attempt to connect
-    if (mqttClient.connect(mqtt_id.c_str(), 
-                          mqtt_user, mqtt_pass, 
-                          String("offline/" + mqtt_id).c_str(), 2, true, "offline",  
+    if (mqttClient.connect(mqtt_id.c_str(),
+                          mqtt_user, mqtt_pass,
+                          String("offline/" + mqtt_id).c_str(), 2, true, "offline",
                           false)) {
-      ESP_LOGI(TAG, "connected, subscribing to topic..");
+      ESP_LOGI(TAG, "connected, subscribing to topic %s/#", mqtt_id.c_str());
       // Subscribe
       mqttClient.subscribe(String(mqtt_id + "/#").c_str());
     } else {
@@ -217,10 +239,12 @@ void setup(void) {
         //return;
     }
 
+#ifndef NOTLS
     espClient.setCACert(server_root_ca);
+#endif
     // OTA over ssl maybe slow
     espClient.setTimeout(MQTT_SOCKET_TIMEOUT);
-    mqttClient.setServer(mqtt_server, port);
+    mqttClient.setServer(mqtt_server, mqtt_port);
     mqttClient.setCallback(callback);
 
     //audioOut.SetGain(0.125);

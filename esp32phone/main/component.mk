@@ -9,6 +9,19 @@
  
 #COMPONENT_ADD_INCLUDEDIRS := ../components/arduino/ ../components/pubsubclient/ ../components/re/include ../components/rem/include ../components/baresip/include/
 #CFLAGS := -DUSE_VIDEO=1
+ifdef MQTTSERVER
+ifdef MQTTPORT
+CXXFLAGS += -DMQTTSERVER=\"$(MQTTSERVER)\" -DMQTTPORT=$(MQTTPORT)
+endif
+endif
+ifdef MQTTUSER
+ifdef MQTTPASS
+CXXFLAGS += -DMQTTUSER=\"$(MQTTUSER)\" -DMQTTPASS=\"$(MQTTPASS)\"
+endif
+endif
+ifdef NOTLS
+CXXFLAGS += -DNOTLS=1
+endif
 
 COMPONENT_OBJEXCLUDE = \
 					   sipphone.o
