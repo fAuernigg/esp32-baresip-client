@@ -53,11 +53,11 @@
 //i2s number
 #define EXAMPLE_I2S_NUM           (0)
 //i2s sample rate
-#define EXAMPLE_I2S_SAMPLE_RATE   (32000)
+#define EXAMPLE_I2S_SAMPLE_RATE   (44100)
 //i2s data bits
 #define EXAMPLE_I2S_SAMPLE_BITS   (16)
 //enable display buffer for debug
-#define EXAMPLE_I2S_BUF_DEBUG     (1)
+//#define EXAMPLE_I2S_BUF_DEBUG     (1)
 //I2S read buffer length
 #define EXAMPLE_I2S_READ_LEN      (16 * 1000)
 //I2S data format
@@ -66,7 +66,7 @@
 #define EXAMPLE_I2S_CHANNEL_NUM   ((EXAMPLE_I2S_FORMAT < I2S_CHANNEL_FMT_ONLY_RIGHT) ? (2) : (1))
 
 //flash record size, for recording 5 seconds' data
-#define FLASH_RECORD_SIZE         (EXAMPLE_I2S_CHANNEL_NUM * EXAMPLE_I2S_SAMPLE_RATE * EXAMPLE_I2S_SAMPLE_BITS / 8 * 1)
+#define FLASH_RECORD_SIZE         (EXAMPLE_I2S_CHANNEL_NUM * EXAMPLE_I2S_SAMPLE_RATE * EXAMPLE_I2S_SAMPLE_BITS / 8 / 2 )
 
 /**
  * @brief I2S mode init.
@@ -173,7 +173,7 @@ void example_i2s_task(void*arg)
     int flash_wr_size;
     int i2s_read_len = EXAMPLE_I2S_READ_LEN;
     char* i2s_read_buff = (char*) calloc(i2s_read_len, sizeof(char));
-//    while (1) {
+    while (1) {
     flash_wr_size = 0;
     while (flash_wr_size < FLASH_RECORD_SIZE) {
         size_t bytes_read;
@@ -182,12 +182,14 @@ void example_i2s_task(void*arg)
                 i2s_read_len, &bytes_read, portMAX_DELAY);
         example_disp_buf((uint8_t*) i2s_read_buff, 64);
         //save original data from I2S MEMs Mic into recbuf.
+        if (flash_wr_size + i2s_read_len > FLASH_RECORD_SIZE)
+            i2s_read_len = FLASH_RECORD_SIZE - flash_wr_size;
         memcpy(recbuf + flash_wr_size, i2s_read_buff, i2s_read_len);
         flash_wr_size += i2s_read_len;
         ets_printf("Sound recording %u%%\n", flash_wr_size * 100 / FLASH_RECORD_SIZE);
     }
     vTaskDelay(100 / portTICK_PERIOD_MS);
-//    }
+    }
     free(i2s_read_buff);
     i2s_read_buff = NULL;
     vTaskDelete(NULL);
