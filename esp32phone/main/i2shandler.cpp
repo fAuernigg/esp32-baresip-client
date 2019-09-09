@@ -7,9 +7,7 @@
 #include "esp_log.h"
 #include "esp_partition.h"
 #include "driver/i2s.h"
-#include "driver/adc.h"
 #include "i2shandler.h"
-#include "esp_adc_cal.h"
 
 /////////////////////////////////////////////////////
 // I2S READ / WRITE CODE
@@ -50,35 +48,25 @@
                             EXAMPLE CONFIG
 ---------------------------------------------------------------*/
 //enable record sound and save in flash
-// TODO: write into SPIFF file instead of partition
-// #define RECORD_IN_FLASH_EN        (1)
-
-//enable replay recorded sound in flash
-// TODO: read from SPIFF file instead of partition
-// #define REPLAY_FROM_FLASH_EN      (1)
+ #define RECORD_IN_FLASH_EN        (1)
 
 //i2s number
 #define EXAMPLE_I2S_NUM           (0)
 //i2s sample rate
-#define EXAMPLE_I2S_SAMPLE_RATE   (16000)
+#define EXAMPLE_I2S_SAMPLE_RATE   (32000)
 //i2s data bits
 #define EXAMPLE_I2S_SAMPLE_BITS   (16)
 //enable display buffer for debug
 #define EXAMPLE_I2S_BUF_DEBUG     (1)
 //I2S read buffer length
-#define EXAMPLE_I2S_READ_LEN      (16 * 1024)
+#define EXAMPLE_I2S_READ_LEN      (16 * 1000)
 //I2S data format
 #define EXAMPLE_I2S_FORMAT        (I2S_CHANNEL_FMT_RIGHT_LEFT)
 //I2S channel number
 #define EXAMPLE_I2S_CHANNEL_NUM   ((EXAMPLE_I2S_FORMAT < I2S_CHANNEL_FMT_ONLY_RIGHT) ? (2) : (1))
 
 //flash record size, for recording 5 seconds' data
-#define FLASH_RECORD_SIZE         (EXAMPLE_I2S_CHANNEL_NUM * EXAMPLE_I2S_SAMPLE_RATE * EXAMPLE_I2S_SAMPLE_BITS / 8 * 5)
-#define FLASH_ERASE_SIZE          (FLASH_RECORD_SIZE % FLASH_SECTOR_SIZE == 0) ? FLASH_RECORD_SIZE : FLASH_RECORD_SIZE + (FLASH_SECTOR_SIZE - FLASH_RECORD_SIZE % FLASH_SECTOR_SIZE)
-//sector size of flash
-#define FLASH_SECTOR_SIZE         (0x1000)
-//flash read / write address
-#define FLASH_ADDR                (0x200000)
+#define FLASH_RECORD_SIZE         (EXAMPLE_I2S_CHANNEL_NUM * EXAMPLE_I2S_SAMPLE_RATE * EXAMPLE_I2S_SAMPLE_BITS / 8 * 1)
 
 /**
  * @brief I2S mode init.
@@ -94,7 +82,7 @@ void example_i2s_init()
     i2s_config.channel_format = (i2s_channel_fmt_t) EXAMPLE_I2S_FORMAT;
     i2s_config.intr_alloc_flags = 0;
     i2s_config.dma_buf_count = 2;
-    i2s_config.dma_buf_len = 1024;
+    i2s_config.dma_buf_len = 1000;
 
     //install and start i2s driver
     i2s_driver_install((i2s_port_t) i2s_num, &i2s_config, 0, NULL);
@@ -140,6 +128,33 @@ void example_set_file_play_mode()
     i2s_set_clk((i2s_port_t)EXAMPLE_I2S_NUM, 16000, (i2s_bits_per_sample_t) EXAMPLE_I2S_SAMPLE_BITS, (i2s_channel_t) 1);
 }
 
+/**
+ * @brief Scale data to 16bit/32bit for I2S output.
+ */
+int example_i2s_data_scale(uint8_t* d_buff, uint8_t* s_buff, uint32_t len)
+{
+    uint32_t j = 0;
+#if (EXAMPLE_I2S_SAMPLE_BITS == 16)
+    for (int i = 0; i < len; i++) {
+        d_buff[j++] = 0;
+        d_buff[j++] = s_buff[i];
+    }
+    return (len * 2);
+#else
+    for (int i = 0; i < len; i++) {
+        d_buff[j++] = 0;
+        d_buff[j++] = 0;
+        d_buff[j++] = 0;
+        d_buff[j++] = s_buff[i];
+    }
+    return (len * 4);
+#endif
+}
+
+
+#if RECORD_IN_FLASH_EN
+static uint8_t recbuf[FLASH_RECORD_SIZE];
+#endif
 
 /**
  * @brief I2S example
@@ -151,44 +166,48 @@ void example_set_file_play_mode()
  */
 void example_i2s_task(void*arg)
 {
-    //const esp_partition_t *data_partition = NULL;
-    int i2s_read_len = EXAMPLE_I2S_READ_LEN;
+    //1. alloc and clear buffer
 
     //2. Record audio from MEMs and save in flash
 #if RECORD_IN_FLASH_EN
-    int flash_wr_size = 0;
+    int flash_wr_size;
+    int i2s_read_len = EXAMPLE_I2S_READ_LEN;
     char* i2s_read_buff = (char*) calloc(i2s_read_len, sizeof(char));
-    uint8_t* flash_write_buff = (uint8_t*) calloc(i2s_read_len, sizeof(char));
-    i2s_adc_enable(EXAMPLE_I2S_NUM);
+//    while (1) {
+    flash_wr_size = 0;
     while (flash_wr_size < FLASH_RECORD_SIZE) {
         size_t bytes_read;
         //read data from I2S bus
-        i2s_read(EXAMPLE_I2S_NUM, (void*) i2s_read_buff, i2s_read_len, &bytes_read, portMAX_DELAY);
+        i2s_read((i2s_port_t)EXAMPLE_I2S_NUM, (void*) i2s_read_buff,
+                i2s_read_len, &bytes_read, portMAX_DELAY);
         example_disp_buf((uint8_t*) i2s_read_buff, 64);
-        //save original data from I2S MEMs Mic into flash.
-        esp_partition_write(data_partition, flash_wr_size, i2s_read_buff, i2s_read_len);
+        //save original data from I2S MEMs Mic into recbuf.
+        memcpy(recbuf + flash_wr_size, i2s_read_buff, i2s_read_len);
         flash_wr_size += i2s_read_len;
         ets_printf("Sound recording %u%%\n", flash_wr_size * 100 / FLASH_RECORD_SIZE);
     }
-    i2s_adc_disable(EXAMPLE_I2S_NUM);
+    vTaskDelay(100 / portTICK_PERIOD_MS);
+//    }
     free(i2s_read_buff);
     i2s_read_buff = NULL;
-    free(flash_write_buff);
-    flash_write_buff = NULL;
+    vTaskDelete(NULL);
+    return;
 #endif
 
-    uint8_t* flash_read_buff = (uint8_t*) calloc(i2s_read_len, sizeof(char));
+    uint8_t* i2s_write_buff = (uint8_t*) calloc(i2s_read_len, sizeof(char));
     while (1) {
 
         //3. Read flash and replay the sound via DAC
-#if REPLAY_FROM_FLASH_EN
-        for (int rd_offset = 0; rd_offset < flash_wr_size; rd_offset += FLASH_SECTOR_SIZE) {
+#if RECORD_IN_FLASH_EN
+        for (int rd_offset = 0; rd_offset < flash_wr_size; rd_offset += i2s_read_len) {
             size_t bytes_written;
-            //read MEMs data from flash
-            esp_partition_read(data_partition, rd_offset, flash_read_buff, FLASH_SECTOR_SIZE);
-            i2s_write(EXAMPLE_I2S_NUM, flash_read_buff, FLASH_SECTOR_SIZE, &bytes_written, portMAX_DELAY);
+            //read MEMs data from recbuf
+            i2s_write((i2s_port_t)EXAMPLE_I2S_NUM, recbuf+rd_offset,
+                    i2s_read_len, &bytes_written, portMAX_DELAY);
             printf("playing: %d %%\n", rd_offset * 100 / flash_wr_size);
         }
+//        vTaskDelay(100 / portTICK_PERIOD_MS);
+//        continue;
 #endif
 
         //4. Play an example audio file(file format: 8bit/16khz/single channel)
@@ -198,17 +217,17 @@ void example_i2s_task(void*arg)
         example_set_file_play_mode();
         while (offset < tot_size) {
             size_t bytes_written;
-            int play_len = ((tot_size - offset) > (4 * 1024)) ? (4 * 1024) : (tot_size - offset);
-            uint8_t* i2s_write_buff = (uint8_t*)(example_audiofile + offset);
+            int play_len = 2*1024;
+            int i2s_wr_len = example_i2s_data_scale(i2s_write_buff,
+                    (uint8_t*)(example_audiofile + offset), play_len);
             i2s_write((i2s_port_t)EXAMPLE_I2S_NUM, i2s_write_buff,
-                    play_len*EXAMPLE_I2S_SAMPLE_BITS/8, &bytes_written, portMAX_DELAY);
+                    i2s_wr_len, &bytes_written, portMAX_DELAY);
             offset += play_len;
             example_disp_buf((uint8_t*) i2s_write_buff, 32);
         }
         vTaskDelay(100 / portTICK_PERIOD_MS);
         example_reset_play_mode();
     }
-    free(flash_read_buff);
     vTaskDelete(NULL);
 }
 
