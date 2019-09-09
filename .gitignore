@@ -1,1 +1,4 @@
 esp32phone/cs_make.sh
+esp32phone/sdkconfig
+tags
+esp32phone/build
