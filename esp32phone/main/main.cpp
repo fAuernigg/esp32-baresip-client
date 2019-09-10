@@ -1,4 +1,9 @@
-#define VERSION "0.2"
+
+#ifndef BUILDNR
+#define BUILDNR "???"
+#endif
+#define VERSION "v0.3"
+
 #define TAG "esp32phone"
 
 #define MQTT_SOCKET_TIMEOUT 120
@@ -224,7 +229,9 @@ void checkMqttServers() {
 
 void setup(void) {
 
-    ESP_LOGI(TAG, "Starting version " VERSION " ...");
+    ESP_LOGI(TAG,"##########################################################");
+    ESP_LOGI(TAG, "Starting version " VERSION " (Build " BUILDNR ") ...");
+    ESP_LOGI(TAG,"##########################################################");
     setup_wifi();
 
     mqtt_id = String("esp32phone_") + WiFi.macAddress();

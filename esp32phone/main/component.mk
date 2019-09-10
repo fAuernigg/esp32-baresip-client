@@ -22,6 +22,9 @@ endif
 ifdef NOTLS
 CXXFLAGS += -DNOTLS=1
 endif
+ifdef BUILDNR
+CXXFLAGS += -DBUILDNR=\"$(BUILDNR)\"
+endif
 
 COMPONENT_OBJEXCLUDE = \
 					   sipphone.o
