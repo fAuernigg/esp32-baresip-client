@@ -53,20 +53,20 @@
 //i2s number
 #define EXAMPLE_I2S_NUM           (0)
 //i2s sample rate
-#define EXAMPLE_I2S_SAMPLE_RATE   (44100)
+#define EXAMPLE_I2S_SAMPLE_RATE   (16000)
 //i2s data bits
-#define EXAMPLE_I2S_SAMPLE_BITS   (16)
+#define EXAMPLE_I2S_SAMPLE_BITS   (32)
 //enable display buffer for debug
-//#define EXAMPLE_I2S_BUF_DEBUG     (1)
+#define EXAMPLE_I2S_BUF_DEBUG     (1)
 //I2S read buffer length
-#define EXAMPLE_I2S_READ_LEN      (16 * 1000)
+#define EXAMPLE_I2S_READ_LEN      (EXAMPLE_I2S_SAMPLE_BITS * 1000)
 //I2S data format
-#define EXAMPLE_I2S_FORMAT        (I2S_CHANNEL_FMT_RIGHT_LEFT)
+#define EXAMPLE_I2S_FORMAT        (I2S_CHANNEL_FMT_ONLY_RIGHT)
 //I2S channel number
 #define EXAMPLE_I2S_CHANNEL_NUM   ((EXAMPLE_I2S_FORMAT < I2S_CHANNEL_FMT_ONLY_RIGHT) ? (2) : (1))
 
 //flash record size, for recording 5 seconds' data
-#define FLASH_RECORD_SIZE         (EXAMPLE_I2S_CHANNEL_NUM * EXAMPLE_I2S_SAMPLE_RATE * EXAMPLE_I2S_SAMPLE_BITS / 8 / 2 )
+#define FLASH_RECORD_SIZE         (EXAMPLE_I2S_CHANNEL_NUM * EXAMPLE_I2S_SAMPLE_RATE * EXAMPLE_I2S_SAMPLE_BITS / 8 )
 
 /**
  * @brief I2S mode init.
@@ -78,7 +78,8 @@ void example_i2s_init()
     i2s_config.mode = (i2s_mode_t) (I2S_MODE_MASTER | I2S_MODE_RX | I2S_MODE_TX);
     i2s_config.sample_rate =  EXAMPLE_I2S_SAMPLE_RATE;
     i2s_config.bits_per_sample = (i2s_bits_per_sample_t) EXAMPLE_I2S_SAMPLE_BITS;
-    i2s_config.communication_format = (i2s_comm_format_t) I2S_COMM_FORMAT_I2S_MSB;
+    i2s_config.communication_format =
+        (i2s_comm_format_t) (I2S_COMM_FORMAT_I2S);
     i2s_config.channel_format = (i2s_channel_fmt_t) EXAMPLE_I2S_FORMAT;
     i2s_config.intr_alloc_flags = 0;
     i2s_config.dma_buf_count = 2;
@@ -173,8 +174,12 @@ void example_i2s_task(void*arg)
     int flash_wr_size;
     int i2s_read_len = EXAMPLE_I2S_READ_LEN;
     char* i2s_read_buff = (char*) calloc(i2s_read_len, sizeof(char));
+    memset(i2s_read_buff, 0, i2s_read_len);
+    uint8_t* i2s_write_buff = (uint8_t*) calloc(i2s_read_len, sizeof(char));
     while (1) {
     flash_wr_size = 0;
+    ets_printf("%s i2s_read_len=%d, FLASH_RECORD_SIZE=%u\n", __FUNCTION__,
+            i2s_read_len, FLASH_RECORD_SIZE);
     while (flash_wr_size < FLASH_RECORD_SIZE) {
         size_t bytes_read;
         //read data from I2S bus
@@ -189,15 +194,14 @@ void example_i2s_task(void*arg)
         ets_printf("Sound recording %u%%\n", flash_wr_size * 100 / FLASH_RECORD_SIZE);
     }
     vTaskDelay(100 / portTICK_PERIOD_MS);
-    }
-    free(i2s_read_buff);
-    i2s_read_buff = NULL;
-    vTaskDelete(NULL);
-    return;
+//    }
+//    free(i2s_read_buff);
+//    i2s_read_buff = NULL;
+//    vTaskDelete(NULL);
+//    return;
 #endif
 
-    uint8_t* i2s_write_buff = (uint8_t*) calloc(i2s_read_len, sizeof(char));
-    while (1) {
+//    while (1) {
 
         //3. Read flash and replay the sound via DAC
 #if RECORD_IN_FLASH_EN
@@ -211,6 +215,8 @@ void example_i2s_task(void*arg)
 //        vTaskDelay(100 / portTICK_PERIOD_MS);
 //        continue;
 #endif
+    }
+    {
 
         //4. Play an example audio file(file format: 8bit/16khz/single channel)
         printf("Playing file example: \n");
