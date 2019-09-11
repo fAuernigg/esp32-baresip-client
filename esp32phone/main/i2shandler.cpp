@@ -82,8 +82,9 @@ void example_i2s_init()
         (i2s_comm_format_t) (I2S_COMM_FORMAT_I2S);
     i2s_config.channel_format = (i2s_channel_fmt_t) EXAMPLE_I2S_FORMAT;
     i2s_config.intr_alloc_flags = 0;
-    i2s_config.dma_buf_count = 2;
+    i2s_config.dma_buf_count = 4;
     i2s_config.dma_buf_len = 1000;
+    i2s_config.use_apll = 0; // APPL DISABLE
 
     //install and start i2s driver
     i2s_driver_install((i2s_port_t) i2s_num, &i2s_config, 0, NULL);
