@@ -1,12 +1,6 @@
-[submodule "esp32phone/components/ESP8266Audio"]
-	path = esp32phone/components/ESP8266Audio
-	url = https://github.com/earlephilhower/ESP8266Audio.git
 [submodule "esp32phone/components/pubsubclient"]
 	path = esp32phone/components/pubsubclient
 	url = https://github.com/knolleary/pubsubclient.git
-[submodule "esp32phone/components/ESP8266_Spiram"]
-	path = esp32phone/components/ESP8266_Spiram
-	url = https://github.com/Gianbacchio/ESP8266_Spiram
 [submodule "esp32phone/components/baresip"]
 	path = esp32phone/components/baresip
 	url = ssh://git@source.commend.com/third_party/baresip.git
