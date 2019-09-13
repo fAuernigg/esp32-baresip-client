@@ -1,16 +1,19 @@
-
 #define TAG "sipphone"
-#include "esp_log.h"
+
+
 #include "sipphone.h"
-#include "SPIFFS.h"
 
 #ifdef ENABLE_baresip
 
 typedef uint32_t u32_t;
-#include <net/if.h>
+#include "cJSON.h"
+#include "esp_log.h"
+#include "SPIFFS.h"
+
+//#include <net/if.h>
 #include <re.h>
 #include <baresip.h>
-#include <string.h>
+
 
 static TaskHandle_t baresip_thread;
 
@@ -32,7 +35,6 @@ static void ua_exit_handler(void *arg)
 	(void)arg;
 	ESP_LOGW(TAG, "ua exited -- stopping main runloop\n");
 
-	/* The main run-loop can be stopped now */
 	re_cancel();
 }
 
@@ -75,9 +77,7 @@ void baresip_main(void* arg)
 
 	baresip_close();
 
-	/* NOTE: modules must be unloaded after all application
-	 *       activity has stopped.
-	 */
+	// NOTE: modules must be unloaded after all application activity has stopped.
 	ESP_LOGW(TAG, "main: unloading modules..\n");
 	mod_close();
 
@@ -85,7 +85,7 @@ void baresip_main(void* arg)
 
 	libre_close();
 
-	/* Check for memory leaks */
+	// Check for memory leaks
 	tmr_debug();
 	mem_debug();
 
@@ -191,9 +191,7 @@ baresip_error:
 
   baresip_close();
 
-  /* NOTE: modules must be unloaded after all application
-    *       activity has stopped.
-    */
+  // NOTE: modules must be unloaded after all application activity has stopped.
   ESP_LOGW(TAG, "main: unloading modules..\n");
   mod_close();
 
@@ -201,7 +199,7 @@ baresip_error:
 
   libre_close();
 
-  /* Check for memory leaks */
+  // Check for memory leaks
   tmr_debug();
   mem_debug();
 
@@ -234,11 +232,11 @@ extern "C" {
 
 	size_t spiff_printf(FILE* f, char* message, size_t len) {
 		ESP_LOGI(TAG, "spiff_print: ...");
-		/*char* tmp = (char*) malloc(len+1);
-		snprintf(tmp, len, "%s", message);
-		ESP_LOGI(TAG, "spiff_print: %s done", tmp);
-		free(tmp);
-		return len;*/
+		//char* tmp = (char*) malloc(len+1);
+		//snprintf(tmp, len, "%s", message);
+		//ESP_LOGI(TAG, "spiff_print: %s done", tmp);
+		//free(tmp);
+		//return len;
 		return ((File*) f)->write((uint8_t*) message, len);
 	}
 
@@ -307,22 +305,25 @@ const struct mod_export *mod_table[] = {
 	NULL,
 	NULL,
 	// TODO provide functions in table
-	/*&exports_wincons,
-	&exports_g711,
-	&exports_winwave,
-	&exports_dshow,
-	&exports_account,
-	&exports_contact,
-	&exports_menu,
-	&exports_auloop,
-	&exports_vidloop,
-	&exports_uuid,
-	&exports_stun,
-	&exports_turn,
-	&exports_ice,
-	&exports_vumeter,*/
+	// &exports_wincons,
+	// &exports_g711,
+	// &exports_winwave,
+	// &exports_dshow,
+	// &exports_account,
+	// &exports_contact,
+	// &exports_menu,
+	// &exports_auloop,
+	// &exports_vidloop,
+	// &exports_uuid,
+	// &exports_stun,
+	// &exports_turn,
+	// &exports_ice,
+	// &exports_vumeter,
 	NULL
 };
+
+
+
 
 
 #ifdef __cplusplus
@@ -330,8 +331,83 @@ const struct mod_export *mod_table[] = {
 #endif
 
 
+
+
+
+static int mbuf_print_handler(const char *p, size_t size, void *arg)
+{
+	struct mbuf *mb = (struct mbuf*) arg;
+
+	return mbuf_write_mem(mb, (const uint8_t*)p, size);
+}
+
+
+
+void sipHandleCommand(PubSubClient* mqttClient, String mqtt_id, String msg)
+{
+	cJSON *root = cJSON_Parse(msg.c_str());
+	if (!root) {
+		ESP_LOGE(TAG, "failed to decode baresip json received: %s", msg.c_str());
+		return;
+	}
+
+	String oe_cmd, oe_prm, oe_tok;
+	oe_cmd = String(cJSON_GetObjectItem(root,"command")->valuestring);
+	oe_prm = String(cJSON_GetObjectItem(root,"params")->valuestring);
+	oe_tok = String(cJSON_GetObjectItem(root,"token")->valuestring);
+
+	if (oe_cmd.length()==0) {
+		ESP_LOGE(TAG, "failed to decode baresip command: %s", msg.c_str());
+		cJSON_Delete(root);
+		return;
+	}
+
+	if (oe_prm.length()>0)
+		oe_cmd += " " + oe_prm;
+	ESP_LOGI(TAG, "handle baresip command: %s", oe_cmd.c_str());
+
+	int err=0;
+	struct mbuf *resp = mbuf_alloc(1024);
+	struct re_printf pf = {mbuf_print_handler, resp};
+	// Relay message to long commands 
+	err = cmd_process_long(baresip_commands(),
+					oe_cmd.c_str(),
+					oe_cmd.length(),
+					&pf, NULL);
+	
+	if (err) {
+		ESP_LOGE(TAG, "failed to process baresip command (cmd_process_long) (%d)\n", err);
+	}
+
+	String resp_topic = mqtt_id + "/baresip/command_resp/";
+	if (oe_tok.length()>0)
+		resp_topic += oe_tok;
+	else
+		resp_topic +=  "nil";
+
+	String resp_msg;
+	
+	for (int i = 0; i < resp->end; i++)
+    	resp_msg += (char)(resp->buf[i]);
+
+	if (!mqttClient->publish(resp_topic.c_str(), resp_msg.c_str())) {
+		ESP_LOGE(TAG, "failed to publish baresip command response (%d)\n", err);
+	}
+
+	if (resp)
+		mem_deref(resp);
+	
+	cJSON_Delete(root);
+}
+
+
 #else //ENABLE_baresip
 int sipPhoneInit() {
 	return true;
 }
+
+void sipHandleCommand(PubSubClient* mqttClient, String msg) {
+
+}
+
 #endif

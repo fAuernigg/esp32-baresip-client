@@ -26,5 +26,5 @@ ifdef BUILDNR
 CXXFLAGS += -DBUILDNR=\"$(BUILDNR)\"
 endif
 
-COMPONENT_OBJEXCLUDE = \
-					   sipphone.o
+#COMPONENT_OBJEXCLUDE = \
+#					   sipphone.o

@@ -23,8 +23,7 @@ long otaUpdateStart = 0;
 #include <StreamString.h>
 #include <HTTPUpdate.h>
 #include "i2shandler.h"
-//#include "AudioOutputI2S.h"
-//#include "sipphone.h"
+#include "sipphone.h"
 
 WiFiMulti WiFiMulti;
 
@@ -119,27 +118,30 @@ void setClock() {
   Serial.print(asctime(&timeinfo));
 }
 
-void callback(char* topic, byte* message, unsigned int length) {
+void callback(char* topic, byte* msg, unsigned int length) {
 
-  // Feel free to add more if statements to control more GPIOs with MQTT
-
+  if (String(topic).indexOf(mqtt_id + "/") !=0 ) {
+    return;
+  }
+  String cmd = String(topic).substring(mqtt_id.length()+1);
+  String message;
+  for (int i = 0; i < (int) length; i++) {
+    Serial.print((char)msg[i]);
+    message += (char)msg[i];
+  }
+  
   // If a message is received on the topic esp32phone_.../cmd
   // Changes the output state according to the message
-  if (String(topic) == (mqtt_id + "/cmd")) {
+  if (cmd == "/cmd") {
     Serial.println("Changing output to");
     ESP_LOGI(TAG, "message received");
     Serial.print("Message arrived on topic: ");
     Serial.print(topic);
-    String messageTemp;
-
-    for (int i = 0; i < (int) length; i++) {
-      Serial.print((char)message[i]);
-      messageTemp += (char)message[i];
-    }
     Serial.print(". Message: ");
-    Serial.println(messageTemp);
-    ESP_LOGI(TAG, "Cmd Message received: %s", messageTemp.c_str());
-  } else if (String(topic) == (mqtt_id + "/config")) {
+    Serial.println(message);
+    ESP_LOGI(TAG, "Cmd Message received: %s", message.c_str());
+
+  } else if (cmd == "/config") {
       File file = SPIFFS.open("/config", FILE_WRITE);
 
       if (!file) {
@@ -147,7 +149,7 @@ void callback(char* topic, byte* message, unsigned int length) {
         ESP_LOGE(TAG, "opening config file failed");
         return;
       }
-      if (file.write(message, length)) {
+      if (file.write((const uint8_t*) message.c_str(), message.length())) {
         Serial.println("File was written");
         ESP_LOGI(TAG, "config file was written");
       } else {
@@ -156,14 +158,8 @@ void callback(char* topic, byte* message, unsigned int length) {
       }
 
       file.close();
-  } else if (String(topic) == (mqtt_id + "/update") ) {
-      String messageTemp;
-
-      for (int i = 0; i < (int) length; i++) {
-        Serial.print((char)message[i]);
-        messageTemp += (char)message[i];
-      }
-      ESP_LOGI(TAG, "update triggered... '%s'", messageTemp.c_str());
+  } else if (cmd == "/update") {
+      ESP_LOGI(TAG, "update triggered... '%s'", message.c_str());
 
       currentlyUpdating = true;
 #ifndef NOTLS
@@ -178,7 +174,7 @@ void callback(char* topic, byte* message, unsigned int length) {
       // OTA over ssl maybe slow
       client.setTimeout(12000);
 
-      t_httpUpdate_return ret = httpUpdate.update(client, messageTemp);
+      t_httpUpdate_return ret = httpUpdate.update(client, message);
       switch (ret) {
         case HTTP_UPDATE_FAILED:
           Serial.printf("HTTP_UPDATE_FAILED Error (%d): %s\n", httpUpdate.getLastError(), httpUpdate.getLastErrorString().c_str());
@@ -196,6 +192,8 @@ void callback(char* topic, byte* message, unsigned int length) {
           break;
       }
       currentlyUpdating=false;
+  } else if (cmd == "/baresip/command") {
+      sipHandleCommand(&mqttClient, mqtt_id, message);
   } else {
     //ESP_LOGI(TAG, "unknown topic found (skipping): %s", topic);
   }
@@ -258,8 +256,6 @@ void setup(void) {
 
     //esp-idf based
     i2s_setup();
-
-//    sipPhoneInit();
 }
 
 long lastMsg = 0;
