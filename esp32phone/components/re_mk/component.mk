@@ -47,7 +47,6 @@ COMPONENT_SRCDIRS = \
 ../re/src/net \
 ../re/src/net/posix \
 ../re/src/telev \
-../re/src/md5 \
 ../re/src/sha \
 ../re/src/crc32 \
 
