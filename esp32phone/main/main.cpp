@@ -1,8 +1,8 @@
+#include "version.h"
 
 #ifndef BUILDNR
 #define BUILDNR "???"
 #endif
-#define VERSION "v0.3"
 
 #define TAG "esp32phone"
 
@@ -129,7 +129,7 @@ void callback(char* topic, byte* msg, unsigned int length) {
     Serial.print((char)msg[i]);
     message += (char)msg[i];
   }
-  
+
   // If a message is received on the topic esp32phone_.../cmd
   // Changes the output state according to the message
   if (cmd == "/cmd") {
@@ -255,7 +255,7 @@ void setup(void) {
     //audioOut.SetGain(0.125);
 
     //esp-idf based
-    i2s_setup();
+//    i2s_setup();
 }
 
 long lastMsg = 0;
@@ -273,7 +273,7 @@ void loop() {
         setClock();
         g_lipaddr = WiFi.localIP();
         ESP_LOGI(TAG, "IP: %u", g_lipaddr);
-//        sipPhoneInit();
+        sipPhoneInit();
       }
       checkMqttServers();
 

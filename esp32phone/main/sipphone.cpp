@@ -8,6 +8,7 @@
 typedef uint32_t u32_t;
 #include "cJSON.h"
 #include "esp_log.h"
+#include "version.h"
 
 //#include <net/if.h>
 #include <re.h>
@@ -104,6 +105,8 @@ int extern_baresip_config(struct conf *conf)
 	conf_set(conf, "audio_player", "aui2s\n");
 	conf_set(conf, "audio_source", "aui2s\n");
 	conf_set(conf, "audio_alert", "aui2s\n");
+	conf_set(conf, "audio_channels", "1\n");
+	conf_set(conf, "audio_srate", "8000\n");
 
 	return 0;
 }
@@ -111,8 +114,7 @@ int extern_baresip_config(struct conf *conf)
 
 int sipPhoneInit()
 {
-	const char *bfsipVersionStr = "0.1";
-	char versionBuffer[256];
+	char versionBuffer[32];
 	bool udp = true, tcp = true, tls = true, prefer_ipv6 = false;
 	int err = 0;
 
@@ -143,20 +145,8 @@ int sipPhoneInit()
 				  conf_config()->audio.audio_path);
 	}
 
-	*versionBuffer = 0;
-	strncat(versionBuffer, "commend SIP Series ", sizeof(versionBuffer));
-	if (bfsipVersionStr) {
-		char *pFound;
-
-		strncat(versionBuffer, bfsipVersionStr, sizeof(versionBuffer));
-
-		pFound = strchr(versionBuffer, '(');
-		if (pFound)
-			*(pFound - 1) = 0; // set space in front of '(' to zero
-	} else {
-		ESP_LOGW(TAG, "BF-SIP version undefined");
-		strncat(versionBuffer, "X", sizeof(versionBuffer));
-	}
+	 strcpy(versionBuffer, "baresip esp32 ");
+	 strcat(versionBuffer, VERSION);
 
 	ESP_LOGI(TAG, "Using this as baresip version string: %s", versionBuffer);
 
