@@ -8,7 +8,6 @@
 typedef uint32_t u32_t;
 #include "cJSON.h"
 #include "esp_log.h"
-#include "SPIFFS.h"
 
 //#include <net/if.h>
 #include <re.h>
@@ -100,7 +99,6 @@ int sipPhoneInit() {
 	char versionBuffer[256];
 	bool udp = true, tcp = true, tls = true, prefer_ipv6 = false;
 	int err = 0;
-	FILE *pTempFile = NULL;
 
 	ESP_LOGI(TAG, "Starting Baresip");
 
@@ -177,7 +175,7 @@ int sipPhoneInit() {
 		goto baresip_error;
 	}
 
-	xTaskCreate(baresip_main, "baresipmain", 2048, NULL, 10, &baresip_thread);  
+	xTaskCreate(baresip_main, "baresipmain", 2048, NULL, 10, &baresip_thread);
 
 	ESP_LOGI(TAG, "Baresip initialization done");
 
@@ -210,53 +208,13 @@ baresip_error:
 extern "C" {
 #endif
 
-	FILE *spiff_open (const char * filename, const char * modes) {
-		ESP_LOGI(TAG, "%s: %d", __FUNCTION__, __LINE__);
-		char* mode = FILE_READ;
-
-		if (String(mode).indexOf("a")>=0)
-			mode = FILE_APPEND;
-		else if (String(mode).indexOf("w")>=0)
-			mode = FILE_WRITE;
-
-		File* file = new File();
-		*file = SPIFFS.open(filename, mode);
-		if (!file) {
-			Serial.println("ERROR opening file ... with mode ...");
-			ESP_LOGE(TAG, "ERROR opening file %s with mode %s", filename, mode);
-			return 0;
-		}
-		ESP_LOGI(TAG, "%s: %d", __FUNCTION__, __LINE__);
-		return (FILE*) file;
-	}
-
-	size_t spiff_printf(FILE* f, char* message, size_t len) {
-		ESP_LOGI(TAG, "spiff_print: ...");
-		//char* tmp = (char*) malloc(len+1);
-		//snprintf(tmp, len, "%s", message);
-		//ESP_LOGI(TAG, "spiff_print: %s done", tmp);
-		//free(tmp);
-		//return len;
-		return ((File*) f)->write((uint8_t*) message, len);
-	}
-
-	size_t spiff_read(FILE* f, void * buf, size_t len) {
-		return ((File*) f)->read(((uint8_t*)buf), len);
-	}
-
-	void spiff_close(FILE* f) {
-		//return;
-		((File*) f)->close();
-	}
-
-
 // TODO: use correct function instead of dummy impl
 int net_rt_list(net_rt_h *rth, void *arg) {
 	return 0;
 }
 
 
-#include <signal.h> 
+#include <signal.h>
 #include <pwd.h>
 
 sighandler_t signal(int signum, sighandler_t handler)
@@ -369,12 +327,11 @@ void sipHandleCommand(PubSubClient* mqttClient, String mqtt_id, String msg)
 	int err=0;
 	struct mbuf *resp = mbuf_alloc(1024);
 	struct re_printf pf = {mbuf_print_handler, resp};
-	// Relay message to long commands 
+	// Relay message to long commands
 	err = cmd_process_long(baresip_commands(),
 					oe_cmd.c_str(),
 					oe_cmd.length(),
 					&pf, NULL);
-	
 	if (err) {
 		ESP_LOGE(TAG, "failed to process baresip command (cmd_process_long) (%d)\n", err);
 	}
@@ -386,9 +343,8 @@ void sipHandleCommand(PubSubClient* mqttClient, String mqtt_id, String msg)
 		resp_topic +=  "nil";
 
 	String resp_msg;
-	
 	for (int i = 0; i < resp->end; i++)
-    	resp_msg += (char)(resp->buf[i]);
+		resp_msg += (char)(resp->buf[i]);
 
 	if (!mqttClient->publish(resp_topic.c_str(), resp_msg.c_str())) {
 		ESP_LOGE(TAG, "failed to publish baresip command response (%d)\n", err);
@@ -396,7 +352,7 @@ void sipHandleCommand(PubSubClient* mqttClient, String mqtt_id, String msg)
 
 	if (resp)
 		mem_deref(resp);
-	
+
 	cJSON_Delete(root);
 }
 
