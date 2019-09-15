@@ -194,7 +194,14 @@ extern "C" {
 
 // TODO: use correct function instead of dummy impl
 int net_rt_list(net_rt_h *rth, void *arg) {
-	return 0;
+	void **argv = (void**) arg;
+	struct sa *ip = (sa*) (argv[1]);
+	
+	const char* ifname = (char*) (argv[0]);
+	const struct sa *dst=0;
+	int dstlen=0;
+	
+	return rth(ifname, dst, dstlen, ip, arg);
 }
 
 
