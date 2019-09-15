@@ -93,8 +93,24 @@ void baresip_main(void* arg)
 	return;
 }
 
-int sipPhoneInit() {
-  const char *sipTransportLayerStr = "udp";
+
+int extern_baresip_config(struct conf *conf)
+{
+	conf_set(conf, "module", "g711");
+	conf_set(conf, "module", "aui2s\n");
+	conf_set(conf, "module_app", "stdio\n");
+	conf_set(conf, "module_app", "menu\n");
+
+	conf_set(conf, "audio_player", "aui2s\n");
+	conf_set(conf, "audio_source", "aui2s\n");
+	conf_set(conf, "audio_alert", "aui2s\n");
+
+	return 0;
+}
+
+
+int sipPhoneInit()
+{
 	const char *bfsipVersionStr = "0.1";
 	char versionBuffer[256];
 	bool udp = true, tcp = true, tls = true, prefer_ipv6 = false;
@@ -113,16 +129,6 @@ int sipPhoneInit() {
     log_register_handler(&baresipLog);
     log_enable_debug(true);
 
-	conf_path_set("/var/tmp/baresip");
-	ESP_LOGI(TAG, "Baresip %s: %d", __FUNCTION__, __LINE__);
-
-	err = conf_configure();
-	if (err) {
-		ESP_LOGE(TAG, "Could not configure baresip");
-		goto baresip_error;
-	}
-	ESP_LOGI(TAG, "Baresip %s: %d", __FUNCTION__, __LINE__);
-
 	err = baresip_init(conf_config(), false);
 	ESP_LOGI(TAG, "Baresip %s: %d", __FUNCTION__, __LINE__);
 
@@ -135,12 +141,6 @@ int sipPhoneInit() {
 	 if (str_isset(conf_config()->audio.audio_path)) {
 		play_set_path(baresip_player(),
 				  conf_config()->audio.audio_path);
-	}
-
-	if (sipTransportLayerStr && !strcmp(sipTransportLayerStr, "TLS_ONLY")) {
-		udp = false;
-		tcp = false;
-		ESP_LOGI(TAG, "Baresip listening to TLS only");
 	}
 
 	*versionBuffer = 0;
@@ -168,12 +168,6 @@ int sipPhoneInit() {
 
 	uag_set_exit_handler(ua_exit_handler, NULL);
 	uag_event_register(ua_event_handler, NULL);
-
-	err = conf_modules();
-	if (err) {
-		ESP_LOGE(TAG, "Could not configure baresip modules");
-		goto baresip_error;
-	}
 
 	xTaskCreate(baresip_main, "baresipmain", 2048, NULL, 10, &baresip_thread);
 
