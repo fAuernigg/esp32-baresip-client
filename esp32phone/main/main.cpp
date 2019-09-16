@@ -15,7 +15,6 @@ long otaUpdateStart = 0;
 #include "Arduino.h"
 #include <PubSubClient.h>
 #include <FS.h>
-#include <SPIFFS.h>
 #include <WiFiClientSecure.h>
 #include <WiFiClient.h>
 #include "esp_log.h"
@@ -141,23 +140,6 @@ void callback(char* topic, byte* msg, unsigned int length) {
     Serial.println(message);
     ESP_LOGI(TAG, "Cmd Message received: %s", message.c_str());
 
-  } else if (cmd == "/config") {
-      File file = SPIFFS.open("/config", FILE_WRITE);
-
-      if (!file) {
-        Serial.println("There was an error opening the file for writing");
-        ESP_LOGE(TAG, "opening config file failed");
-        return;
-      }
-      if (file.write((const uint8_t*) message.c_str(), message.length())) {
-        Serial.println("File was written");
-        ESP_LOGI(TAG, "config file was written");
-      } else {
-        Serial.println("File write failed");
-        ESP_LOGE(TAG, "failed to write config file");
-      }
-
-      file.close();
   } else if (cmd == "/update") {
       ESP_LOGI(TAG, "update triggered... '%s'", message.c_str());
 
@@ -237,12 +219,6 @@ void setup(void) {
     ESP_LOGI(TAG, "mqtt socket timeout: %d", MQTT_SOCKET_TIMEOUT);
 
     pinMode(testPin, OUTPUT);
-
-    if (!SPIFFS.begin(true))
-    {
-        Serial.println("Failed to mount the file system");
-        //return;
-    }
 
 #ifndef NOTLS
     espClient.setCACert(server_root_ca);

@@ -14,6 +14,8 @@ typedef uint32_t u32_t;
 #include <re.h>
 #include <baresip.h>
 
+#include "arduino_net.h"
+
 
 static TaskHandle_t baresip_thread;
 
@@ -194,14 +196,64 @@ extern "C" {
 
 // TODO: use correct function instead of dummy impl
 int net_rt_list(net_rt_h *rth, void *arg) {
-	void **argv = (void**) arg;
-	struct sa *ip = (sa*) (argv[1]);
-	
-	const char* ifname = (char*) (argv[0]);
-	const struct sa *dst=0;
-	int dstlen=0;
-	
-	return rth(ifname, dst, dstlen, ip, arg);
+	struct sa dst;
+	struct sa gw;
+
+	if (!rth)
+		return EINVAL;
+
+	sa_init(&dst, AF_INET);
+	sa_set_str(&gw, ard_gateway(), 0);
+
+	rth("wifi", &dst, 24, &gw, arg);
+	return 0;
+}
+
+int net_if_getaddr4(const char *ifname, int af, struct sa *ip)
+{
+	int err;
+	err = sa_set_str(ip, ard_local_ip(), 0);
+	if (err)
+		ESP_LOGW(TAG, "%s No valid local ip address\n", __FUNCTION__);
+
+	return err;
+}
+
+int net_if_list(net_ifaddr_h *ifh, void *arg)
+{
+	struct sa sa;
+	int err;
+	if (!ifh)
+		return EINVAL;
+
+	err = sa_set_str(&sa, ard_local_ip(), 0);
+	if (err) {
+		ESP_LOGW(TAG, "%s No valid local ip address\n", __FUNCTION__);
+		return err;
+	}
+	ifh("wifi", &sa, arg);
+
+	return 0;
+}
+
+int net_if_getaddr_for(const struct pl *dest, struct sa *localip, bool isip)
+{
+	(void) dest;
+	int err;
+
+	if (!localip)
+		return EINVAL;
+
+	if (!isip) {
+		ESP_LOGW(TAG, "Only IP-addresses are supported for the peer address\n");
+		return EINVAL;
+	}
+
+	err = sa_set_str(localip, ard_local_ip(), 0);
+	if (err)
+		ESP_LOGW(TAG, "%s No valid local ip address\n", __FUNCTION__);
+
+	return err;
 }
 
 
