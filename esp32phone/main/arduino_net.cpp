@@ -2,12 +2,12 @@
 #include "arduino_net.h"
 #include <WiFi.h>
 
-const char *ard_local_ip()
+IPAddress ard_local_ip()
 {
-	return WiFi.localIP().toString().c_str();
+	return WiFi.localIP();
 }
 
-const char *ard_gateway()
+IPAddress ard_gateway()
 {
-	return WiFi.gatewayIP().toString().c_str();
+	return WiFi.gatewayIP();
 }

@@ -99,6 +99,7 @@ void baresip_main(void* arg)
 
 int extern_baresip_config(struct conf *conf)
 {
+	conf_set(conf, "sip_listen", "0.0.0.0:5060");
 	conf_set(conf, "module", "g711");
 	conf_set(conf, "module", "aui2s\n");
 	conf_set(conf, "module_app", "stdio\n");
@@ -110,14 +111,14 @@ int extern_baresip_config(struct conf *conf)
 	conf_set(conf, "audio_channels", "1\n");
 	conf_set(conf, "audio_srate", "8000\n");
 
-	return 0;
+	return config_parse_conf(conf_config(), conf);
 }
 
 
 int sipPhoneInit()
 {
 	char versionBuffer[32];
-	bool udp = true, tcp = true, tls = true, prefer_ipv6 = false;
+	bool udp = true, tcp = false, tls = false, prefer_ipv6 = false;
 	int err = 0;
 
 	ESP_LOGI(TAG, "Starting Baresip");
@@ -132,6 +133,13 @@ int sipPhoneInit()
     ESP_LOGI(TAG, "Baresip logging activated");
     log_register_handler(&baresipLog);
     log_enable_debug(true);
+
+	err = conf_configure();
+	err |= extern_baresip_config(conf_cur());
+	if (err) {
+		ESP_LOGI(TAG, "Could not configure.");
+		return err;
+	}
 
 	err = baresip_init(conf_config(), false);
 	ESP_LOGI(TAG, "Baresip %s: %d", __FUNCTION__, __LINE__);
@@ -159,6 +167,13 @@ int sipPhoneInit()
 	}
 
 	uag_set_exit_handler(ua_exit_handler, NULL);
+
+	err = conf_modules();
+	if (err) {
+		ESP_LOGE(TAG, "Could not configure modules");
+		goto baresip_error;
+	}
+
 	uag_event_register(ua_event_handler, NULL);
 
 	xTaskCreate(baresip_main, "baresipmain", 2048, NULL, 10, &baresip_thread);
@@ -203,7 +218,9 @@ int net_rt_list(net_rt_h *rth, void *arg) {
 		return EINVAL;
 
 	sa_init(&dst, AF_INET);
-	sa_set_str(&gw, ard_gateway(), 0);
+
+	String ip = ard_gateway().toString();
+	sa_set_str(&gw, ip.c_str(), 0);
 
 	rth("wifi", &dst, 24, &gw, arg);
 	return 0;
@@ -212,7 +229,9 @@ int net_rt_list(net_rt_h *rth, void *arg) {
 int net_if_getaddr4(const char *ifname, int af, struct sa *ip)
 {
 	int err;
-	err = sa_set_str(ip, ard_local_ip(), 0);
+	String s = ard_local_ip().toString();
+	ESP_LOGI(TAG, "ard_local_ip = %s", s.c_str());
+	err = sa_set_str(ip, s.c_str(), 0);
 	if (err)
 		ESP_LOGW(TAG, "%s No valid local ip address\n", __FUNCTION__);
 
@@ -226,7 +245,9 @@ int net_if_list(net_ifaddr_h *ifh, void *arg)
 	if (!ifh)
 		return EINVAL;
 
-	err = sa_set_str(&sa, ard_local_ip(), 0);
+	String ip = ard_local_ip().toString();
+	ESP_LOGI(TAG, "ard_local_ip = %s", ip.c_str());
+	err = sa_set_str(&sa, ip.c_str(), 0);
 	if (err) {
 		ESP_LOGW(TAG, "%s No valid local ip address\n", __FUNCTION__);
 		return err;
@@ -249,7 +270,8 @@ int net_if_getaddr_for(const struct pl *dest, struct sa *localip, bool isip)
 		return EINVAL;
 	}
 
-	err = sa_set_str(localip, ard_local_ip(), 0);
+	String ip = ard_local_ip().toString();
+	err = sa_set_str(localip, ip.c_str(), 0);
 	if (err)
 		ESP_LOGW(TAG, "%s No valid local ip address\n", __FUNCTION__);
 

@@ -81,9 +81,6 @@ String mqtt_id;
 // for testing Pin
 const int testPin = 4;
 
-uint32_t g_lipaddr = 120301760;
-
-
 void setup_wifi() {
     delay(10);
     // We start by connecting to a WiFi network
@@ -119,10 +116,12 @@ void setClock() {
 
 void callback(char* topic, byte* msg, unsigned int length) {
 
-  if (String(topic).indexOf(mqtt_id + "/") !=0 ) {
+  ESP_LOGI(TAG, "Message arrived on topic: %s", topic);
+  if (String(topic).indexOf(mqtt_id + "/") == -1)
     return;
-  }
+
   String cmd = String(topic).substring(mqtt_id.length()+1);
+  ESP_LOGI(TAG, "cmd: %s", cmd.c_str());
   String message;
   for (int i = 0; i < (int) length; i++) {
     Serial.print((char)msg[i]);
@@ -131,16 +130,12 @@ void callback(char* topic, byte* msg, unsigned int length) {
 
   // If a message is received on the topic esp32phone_.../cmd
   // Changes the output state according to the message
-  if (cmd == "/cmd") {
-    Serial.println("Changing output to");
-    ESP_LOGI(TAG, "message received");
-    Serial.print("Message arrived on topic: ");
-    Serial.print(topic);
-    Serial.print(". Message: ");
+  if (cmd == "cmd") {
+    Serial.print("Message: ");
     Serial.println(message);
     ESP_LOGI(TAG, "Cmd Message received: %s", message.c_str());
 
-  } else if (cmd == "/update") {
+  } else if (cmd == "update") {
       ESP_LOGI(TAG, "update triggered... '%s'", message.c_str());
 
       currentlyUpdating = true;
@@ -174,7 +169,7 @@ void callback(char* topic, byte* msg, unsigned int length) {
           break;
       }
       currentlyUpdating=false;
-  } else if (cmd == "/baresip/command") {
+  } else if (cmd == "baresip/command") {
       sipHandleCommand(&mqttClient, mqtt_id, message);
   } else {
     //ESP_LOGI(TAG, "unknown topic found (skipping): %s", topic);
@@ -228,28 +223,21 @@ void setup(void) {
     mqttClient.setServer(mqtt_server, mqtt_port);
     mqttClient.setCallback(callback);
 
-    //audioOut.SetGain(0.125);
-
     //esp-idf based
 //    i2s_setup();
 }
 
 long lastMsg = 0;
 bool wifiConnected=false;
+bool sipinit=false;
 
 void loop() {
 
     if ((WiFiMulti.run() == WL_CONNECTED)) {
       if (!wifiConnected) {
-        Serial.println("WiFi connected");
-        Serial.println("IP address: ");
-        Serial.println(WiFi.localIP());
-        ESP_LOGI(TAG, "wifi done enabled %s", String(WiFi.localIP()).c_str());
+        ESP_LOGI(TAG, "WiFi connected IP address: %s", WiFi.localIP().toString().c_str());
         wifiConnected = true;
         setClock();
-        g_lipaddr = WiFi.localIP();
-        ESP_LOGI(TAG, "IP: %u", g_lipaddr);
-        sipPhoneInit();
       }
       checkMqttServers();
 
@@ -260,6 +248,10 @@ void loop() {
         if (now - lastMsg > 30000) {
             lastMsg = now;
             mqttClient.publish(String(mqtt_id + "/version").c_str(), VERSION);
+        }
+        if (!sipinit) {
+          sipPhoneInit();
+          sipinit = true;
         }
       }
     } else {

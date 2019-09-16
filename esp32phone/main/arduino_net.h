@@ -1,7 +1,8 @@
 #ifndef ARDUINO_NET_H
 #define ARDUINO_NET_H
+#include <IPAddress.h>
 
-const char *ard_local_ip();
-const char *ard_gateway();
+IPAddress ard_local_ip();
+IPAddress ard_gateway();
 
 #endif
