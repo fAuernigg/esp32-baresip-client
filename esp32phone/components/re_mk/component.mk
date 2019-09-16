@@ -45,7 +45,6 @@ COMPONENT_SRCDIRS = \
 ../re/src/lock \
 ../re/src/http \
 ../re/src/net \
-../re/src/net/posix \
 ../re/src/telev \
 ../re/src/sha \
 ../re/src/crc32 \
