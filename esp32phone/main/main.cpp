@@ -61,11 +61,11 @@ const char* server_root_ca =
  "-----END CERTIFICATE-----";
 
 
-#if NOTLS!=1
-// to enable secure communication tls
-WiFiClientSecure espClient;
-#else
+#if defined NOTLS
 WiFiClient espClient;
+#else
+// to enable secure communication over tls
+WiFiClientSecure espClient;
 #endif
 PubSubClient mqttClient(espClient);
 
@@ -92,7 +92,7 @@ void setup_wifi() {
     WiFiMulti.addAP(CONFIG_ESP_WIFI_SSID, CONFIG_ESP_WIFI_PASSWORD);
     WiFiMulti.addAP("mrxa.espconfig", "hekmek33");
     WiFiMulti.addAP("onesip", "wifi4us!");
-    WiFiMulti.addAP("CIWLAN", "C0mm3nd#");
+    WiFiMulti.addAP("mrxa.mw13", "Mwenstr@!3");
 }
 
 
@@ -203,8 +203,6 @@ void checkMqttServers() {
   }
 }
 
-//AudioOutputI2S audioOut;
-
 void setup(void) {
 
     ESP_LOGI(TAG,"##########################################################");
@@ -218,7 +216,7 @@ void setup(void) {
 
     pinMode(testPin, OUTPUT);
 
-#if NOTLS!=1
+#if not defined NOTLS
     espClient.setCACert(server_root_ca);
 #endif
     // OTA over ssl maybe slow
