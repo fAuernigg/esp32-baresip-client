@@ -102,7 +102,6 @@ int extern_baresip_config(struct conf *conf)
 	conf_set(conf, "sip_listen", "0.0.0.0:5060");
 	conf_set(conf, "module", "g711");
 	conf_set(conf, "module", "aui2s\n");
-	conf_set(conf, "module_app", "stdio\n");
 	conf_set(conf, "module_app", "menu\n");
 
 	conf_set(conf, "audio_player", "aui2s\n");
@@ -298,7 +297,6 @@ struct passwd	*getpwnam (const char *) {
 
 // libre apis to load modules (which we use statically)
 void *_mod_open(const char *name) {
-	ESP_LOGI(TAG, "%s: %d", __FUNCTION__, __LINE__);
 	return 0;
 }
 
@@ -307,46 +305,7 @@ void *_mod_sym(void *h, const char *symbol) {
 	return 0;
 }
 void  _mod_close(void *h) {
-	ESP_LOGI(TAG, "%s: %d", __FUNCTION__, __LINE__);
 }
-
-
-
-const struct mod_export *mod_table[] = {
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	// TODO provide functions in table
-	// &exports_wincons,
-	// &exports_g711,
-	// &exports_winwave,
-	// &exports_dshow,
-	// &exports_account,
-	// &exports_contact,
-	// &exports_menu,
-	// &exports_auloop,
-	// &exports_vidloop,
-	// &exports_uuid,
-	// &exports_stun,
-	// &exports_turn,
-	// &exports_ice,
-	// &exports_vumeter,
-	NULL
-};
-
-
-
 
 
 #ifdef __cplusplus

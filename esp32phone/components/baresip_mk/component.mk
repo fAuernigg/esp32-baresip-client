@@ -2,9 +2,12 @@
 COMPONENT_ADD_INCLUDEDIRS := ../baresip/include
 
 COMPONENT_SRCDIRS = \
-../baresip/src  \
+../baresip/src \
 ../baresip/modules/g711 \
-../baresip/modules/aui2s
+../baresip/modules/aui2s \
+../baresip/modules/stdio \
+../baresip/modules/menu \
+.
 
 CFLAGS	+= -DHAVE_SELECT -DHAVE_SELECT_H
 CFLAGS	+= -DHAVE_INET_NTOP -DHAVE_INET_PTON -DHAVE_PTHREAD -DHAVE_STRERROR_R
@@ -30,7 +33,6 @@ CFLAGS	+= -DSHARE_PATH=\"/usr/share/baresip\"
 
 CFLAGS    += -DSTATIC=1 -DEXTCONFIG=1 -DNODNS
 CXXFLAGS  += -DSTATIC=1 -DEXTCONFIG=1 -DNODNS
-LIBS      += $(MOD_LFLAGS)
 
 COMPONENT_OBJEXCLUDE = \
 					   ../baresip/src/video.o \
