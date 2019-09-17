@@ -61,7 +61,7 @@ const char* server_root_ca =
  "-----END CERTIFICATE-----";
 
 
-#ifndef NOTLS
+#if NOTLS!=1
 // to enable secure communication tls
 WiFiClientSecure espClient;
 #else
@@ -218,7 +218,7 @@ void setup(void) {
 
     pinMode(testPin, OUTPUT);
 
-#ifndef NOTLS
+#if NOTLS!=1
     espClient.setCACert(server_root_ca);
 #endif
     // OTA over ssl maybe slow
