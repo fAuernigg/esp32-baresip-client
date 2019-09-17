@@ -90,7 +90,9 @@ void setup_wifi() {
 
     WiFi.mode(WIFI_STA);
     WiFiMulti.addAP(CONFIG_ESP_WIFI_SSID, CONFIG_ESP_WIFI_PASSWORD);
+    WiFiMulti.addAP("mrxa.espconfig", "hekmek33");
     WiFiMulti.addAP("onesip", "wifi4us!");
+    WiFiMulti.addAP("CIWLAN", "C0mm3nd#");
 }
 
 
@@ -137,21 +139,22 @@ void callback(char* topic, byte* msg, unsigned int length) {
 
   } else if (cmd == "update") {
       ESP_LOGI(TAG, "update triggered... '%s'", message.c_str());
+      currentlyUpdating = true;     
 
-      currentlyUpdating = true;
-#ifndef NOTLS
-      // to enable secure communication tls
-      WiFiClientSecure client;
-#else
-      WiFiClient client;
-#endif
-#ifndef NOTLS
-      client.setCACert(server_root_ca);
-#endif
-      // OTA over ssl maybe slow
-      client.setTimeout(12000);
-
-      t_httpUpdate_return ret = httpUpdate.update(client, message);
+      t_httpUpdate_return ret = HTTP_UPDATE_FAILED;
+      if(message.indexOf("https://")==0) {
+        ESP_LOGI(TAG, "Https ota update ");
+        WiFiClientSecure client;
+        client.setCACert(server_root_ca);
+        // OTA over ssl maybe slow 
+        client.setTimeout(12000);
+        ret = httpUpdate.update(client, message);
+      } else {
+        WiFiClient client;
+        ESP_LOGI(TAG, "Http ota update ");
+        ret = httpUpdate.update(client, message);
+      }
+      
       switch (ret) {
         case HTTP_UPDATE_FAILED:
           Serial.printf("HTTP_UPDATE_FAILED Error (%d): %s\n", httpUpdate.getLastError(), httpUpdate.getLastErrorString().c_str());
