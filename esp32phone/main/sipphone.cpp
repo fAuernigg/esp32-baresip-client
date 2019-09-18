@@ -325,47 +325,6 @@ void  _mod_close(void *h) {
 }
 
 
-const struct mod_export *mod_table[] = {
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	// TODO provide functions in table
-	// &exports_wincons,
-	// &exports_g711,
-	// &exports_winwave,
-	// &exports_dshow,
-	// &exports_account,
-	// &exports_contact,
-	// &exports_menu,
-	// &exports_auloop,
-	// &exports_vidloop,
-	// &exports_uuid,
-	// &exports_stun,
-	// &exports_turn,
-	// &exports_ice,
-	// &exports_vumeter,
-	NULL
-};
-
-
-
-
-
-
-
-
-
 static int mbuf_print_handler(const char *p, size_t size, void *arg)
 {
 	struct mbuf *mb = (struct mbuf*) arg;
