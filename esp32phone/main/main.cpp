@@ -9,9 +9,12 @@
 #define MQTT_SOCKET_TIMEOUT 120
 #define MQTT_CONNECT_RETRY 5000
 #define OTA_TIMEOUT (MQTT_SOCKET_TIMEOUT * 1000)
+#define WIFI_RECONNECT_TIME 5000
 
 
 long gMqttLastReconnectTime = -1;
+long gWifiLastReconnectTime = -1;
+
 long otaUpdateStart = 0;
 
 #include "main.h"
@@ -85,17 +88,26 @@ String mqtt_id;
 // for testing Pin
 const int testPin = 4;
 
-void setup_wifi() {
-    delay(10);
+void checkWifiConnection() 
+{
+  if (WiFiMulti.run() == WL_CONNECTED) {
+    gWifiLastReconnectTime = millis();
+  } else if ((millis()-gWifiLastReconnectTime) > WIFI_RECONNECT_TIME) {
+    gWifiLastReconnectTime = millis();
+    ESP_LOGE(TAG, "checkWifiConnection, reconnecting ...");
+
     // We start by connecting to a WiFi network
-    Serial.println();
-    Serial.print("Connecting to ");
-    Serial.println(CONFIG_ESP_WIFI_SSID);
+    if (gWifiLastReconnectTime!=-1) {
+      WiFi.disconnect(true);
+      delay(1000);
+    }
 
     WiFi.mode(WIFI_STA);
-//    WiFiMulti.addAP(CONFIG_ESP_WIFI_SSID, CONFIG_ESP_WIFI_PASSWORD);
+  //    WiFiMulti.addAP(CONFIG_ESP_WIFI_SSID, CONFIG_ESP_WIFI_PASSWORD);
+  //    WiFiMulti.addAP("onesip", "wifi4us!");
     WiFiMulti.addAP("mrxa.espconfig", "hekmek33");
-//    WiFiMulti.addAP("onesip", "wifi4us!");
+    WiFiMulti.addAP("CIWLAN", "C0mm3nd#");
+  }
 }
 
 
@@ -208,7 +220,7 @@ void setup(void) {
     ESP_LOGI(TAG,"##########################################################");
     ESP_LOGI(TAG, "Starting version " VERSION " (Build " BUILDNR ") ...");
     ESP_LOGI(TAG,"##########################################################");
-    setup_wifi();
+    checkWifiConnection();
 
     mqtt_id = String("esp32phone_") + WiFi.macAddress();
     ESP_LOGI(TAG, "client: %s", mqtt_id.c_str());
@@ -262,5 +274,7 @@ void loop() {
     } else {
       wifiConnected = false;
     }
+
+    checkWifiConnection();
 }
 

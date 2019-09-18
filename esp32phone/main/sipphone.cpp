@@ -193,7 +193,7 @@ int sipPhoneInit()
 	ua_alloc(NULL, (char *) mbuf_buf(mb));
 	mem_deref(mb);
 
-	xTaskCreate(baresip_main, "baresipmain", 2048, NULL, 10, &baresip_thread);
+	xTaskCreate(baresip_main, "baresipmain", 32*1024, NULL, 10, &baresip_thread);
 
 	ESP_LOGI(TAG, "Baresip initialization done");
 
