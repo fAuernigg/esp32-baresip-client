@@ -7,8 +7,12 @@
 #define TAG "esp32phone"
 
 #define MQTT_SOCKET_TIMEOUT 120
-long otaUpdateStart = 0;
+#define MQTT_CONNECT_RETRY 5000
 #define OTA_TIMEOUT (MQTT_SOCKET_TIMEOUT * 1000)
+
+
+long gMqttLastReconnectTime = -1;
+long otaUpdateStart = 0;
 
 #include "main.h"
 #include <WiFiMulti.h>
@@ -90,10 +94,8 @@ void setup_wifi() {
 
     WiFi.mode(WIFI_STA);
     WiFiMulti.addAP(CONFIG_ESP_WIFI_SSID, CONFIG_ESP_WIFI_PASSWORD);
-    WiFiMulti.addAP("mrxa.espconfig", "hekmek33");
-    WiFiMulti.addAP("onesip", "wifi4us!");
-    WiFiMulti.addAP("mrxa.mw13", "Mwenstr@!3");
 }
+
 
 
 // Set time via NTP, as required for x.509 validation
@@ -180,14 +182,11 @@ void callback(char* topic, byte* msg, unsigned int length) {
 
 }
 
-void checkMqttServers() {
-  int count=0;
-  // Loop until we're reconnected
-  while (!mqttClient.connected() && count<2) {
-    count++;
-    ESP_LOGI(TAG, "Attempting MQTT connection... %s:%d %i", mqtt_server,
-        mqtt_port, count);
-    // Attempt to connect
+void mqttCheckReconnect() {
+  
+  if (!mqttClient.connected() && (millis()-gMqttLastReconnectTime) > MQTT_CONNECT_RETRY) {
+    ESP_LOGI(TAG, "MQTT connection... %s:%d", 
+        mqtt_server,mqtt_port);
     if (mqttClient.connect(mqtt_id.c_str(),
                           mqtt_user, mqtt_pass,
                           String("offline/" + mqtt_id).c_str(), 2, true, "offline",
@@ -197,9 +196,8 @@ void checkMqttServers() {
       mqttClient.subscribe(String(mqtt_id + "/#").c_str());
     } else {
       ESP_LOGE(TAG, "failed to connect, mqtt state: %i, trying again", mqttClient.state());
-      // Wait x seconds before retrying
-      delay(2000);
     }
+    gMqttLastReconnectTime = millis();
   }
 }
 
@@ -216,16 +214,8 @@ void setup(void) {
 
     pinMode(testPin, OUTPUT);
 
-#if not defined NOTLS
-    espClient.setCACert(server_root_ca);
-#endif
-    // OTA over ssl maybe slow
-    espClient.setTimeout(MQTT_SOCKET_TIMEOUT);
-    mqttClient.setServer(mqtt_server, mqtt_port);
-    mqttClient.setCallback(callback);
-
     //esp-idf based
-//    i2s_setup();
+    //i2s_setup();
 }
 
 long lastMsg = 0;
@@ -236,19 +226,31 @@ void loop() {
 
     if ((WiFiMulti.run() == WL_CONNECTED)) {
       if (!wifiConnected) {
-        ESP_LOGI(TAG, "WiFi connected IP address: %s", WiFi.localIP().toString().c_str());
+
         wifiConnected = true;
+        ESP_LOGI(TAG, "WiFi connected IP address: %s", WiFi.localIP().toString().c_str());
         setClock();
+
+        // (re) set mqtt server on wifi connected
+        #if not defined NOTLS
+        espClient.setCACert(server_root_ca);
+        #endif
+        // OTA over ssl maybe slow
+        espClient.setTimeout(MQTT_SOCKET_TIMEOUT);
+        mqttClient.setCallback(callback);
+        mqttClient.setServer(mqtt_server, mqtt_port);
       }
-      checkMqttServers();
+
+      mqttCheckReconnect();
+      mqttClient.loop();
 
       if (!currentlyUpdating) {
-        mqttClient.loop();
-
         long now = millis();
         if (now - lastMsg > 30000) {
             lastMsg = now;
-            mqttClient.publish(String(mqtt_id + "/version").c_str(), VERSION);
+            if (mqttClient.connected()) {
+              mqttClient.publish(String(mqtt_id + "/version").c_str(), VERSION);
+            }
         }
         if (!sipinit) {
           sipPhoneInit();
