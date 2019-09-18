@@ -5,6 +5,14 @@
 
 #ifdef ENABLE_baresip
 
+#ifndef UA_DISPLAY_NAME
+#define UA_DISPLAY_NAME "FedEx esp32"
+#endif
+
+#ifndef UA_USER
+#define UA_USER "esp32"
+#endif
+
 typedef uint32_t u32_t;
 #include "cJSON.h"
 #include "esp_log.h"
@@ -119,6 +127,8 @@ int sipPhoneInit()
 	char versionBuffer[32];
 	bool udp = true, tcp = false, tls = false, prefer_ipv6 = false;
 	int err = 0;
+	struct mbuf *mb;
+	String ip = ard_local_ip().toString();
 
 	ESP_LOGI(TAG, "Starting Baresip");
 
@@ -174,6 +184,13 @@ int sipPhoneInit()
 	}
 
 	uag_event_register(ua_event_handler, NULL);
+
+	mb = mbuf_alloc(100);
+	mbuf_printf(mb, "\"" UA_DISPLAY_NAME "\" "
+			"<sip:%s@%s>;auth_pass=none;regint=0;answermode=auto", UA_USER, ip.c_str());
+	mbuf_write_u8(mb, 0);
+	ua_alloc(NULL, (char *) mbuf_buf(mb));
+	mem_deref(mb);
 
 	xTaskCreate(baresip_main, "baresipmain", 2048, NULL, 10, &baresip_thread);
 
