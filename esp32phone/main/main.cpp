@@ -103,10 +103,10 @@ void checkWifiConnection()
     }
 
     WiFi.mode(WIFI_STA);
-  //    WiFiMulti.addAP(CONFIG_ESP_WIFI_SSID, CONFIG_ESP_WIFI_PASSWORD);
+      WiFiMulti.addAP(CONFIG_ESP_WIFI_SSID, CONFIG_ESP_WIFI_PASSWORD);
   //    WiFiMulti.addAP("onesip", "wifi4us!");
-    WiFiMulti.addAP("mrxa.espconfig", "hekmek33");
-    WiFiMulti.addAP("CIWLAN", "C0mm3nd#");
+//    WiFiMulti.addAP("mrxa.espconfig", "hekmek33");
+//    WiFiMulti.addAP("CIWLAN", "C0mm3nd#");
   }
 }
 
