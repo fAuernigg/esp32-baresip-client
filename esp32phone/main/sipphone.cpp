@@ -189,6 +189,7 @@ int sipPhoneInit()
 	mbuf_printf(mb, "\"" UA_DISPLAY_NAME "\" "
 			"<sip:%s@%s>;auth_pass=none;regint=0;answermode=auto", UA_USER, ip.c_str());
 	mbuf_write_u8(mb, 0);
+	mbuf_set_pos(mb, 0);
 	ua_alloc(NULL, (char *) mbuf_buf(mb));
 	mem_deref(mb);
 

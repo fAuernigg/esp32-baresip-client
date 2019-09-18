@@ -93,7 +93,9 @@ void setup_wifi() {
     Serial.println(CONFIG_ESP_WIFI_SSID);
 
     WiFi.mode(WIFI_STA);
-    WiFiMulti.addAP(CONFIG_ESP_WIFI_SSID, CONFIG_ESP_WIFI_PASSWORD);
+//    WiFiMulti.addAP(CONFIG_ESP_WIFI_SSID, CONFIG_ESP_WIFI_PASSWORD);
+    WiFiMulti.addAP("mrxa.espconfig", "hekmek33");
+//    WiFiMulti.addAP("onesip", "wifi4us!");
 }
 
 
