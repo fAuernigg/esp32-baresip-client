@@ -167,7 +167,7 @@ void checkButtonPressed()
         cmd += "\"params\":";
         cmd += String("\"") + dest + "\"";
       } else {
-        cmd += "\"hangup\"";
+        cmd += "\"hangup\", ";
         cmd += "\"params\":";
         cmd += String("\"") + "\"";
       }
