@@ -33,7 +33,13 @@ long otaUpdateStart = 0;
 
 WiFiMulti WiFiMulti;
 
+#define ONBOARDLED_PIN 2
+#define BUTTON_PIN 4
+#define BUTTON_PRESSED 0
+
 bool currentlyUpdating = false;
+bool gDebugModeEnabled = false;
+bool gSipInit=false;
 
 // Add your MQTT Broker IP address
 #if defined MQTTSERVER && defined MQTTPORT
@@ -85,8 +91,6 @@ const char* mqtt_pass = "Xeps23v90489i§LKsecEDag_sdfikik§]";
 #endif
 String mqtt_id;
 
-// for testing Pin
-const int testPin = 4;
 
 void checkWifiConnection() 
 {
@@ -108,7 +112,60 @@ void checkWifiConnection()
   WiFiMulti.addAP("mrxa.espconfig", "hekmek33");
 }
 
+bool gCallPresent = false;
+int gButton1Value = -1;
 
+void initGpios() {
+  pinMode(BUTTON_PIN, INPUT_PULLUP);
+
+  pinMode(ONBOARDLED_PIN, OUTPUT);
+  digitalWrite(ONBOARDLED_PIN, 1);
+  delay(100);
+  digitalWrite(ONBOARDLED_PIN, 0);
+}
+
+void updateCallLed(bool value)
+{
+  if (gCallPresent != value) {
+    gCallPresent = value;
+    digitalWrite(ONBOARDLED_PIN, (int) gCallPresent);
+  }
+}
+
+void checkButtonPressed()
+{
+  int value = digitalRead(BUTTON_PIN);
+
+  if (value == BUTTON_PRESSED && gButton1Value != value) {
+    gButton1Value = value;
+
+    if (gSipInit) {
+      String cmd = "{" "\"command\":";
+      if (!gCallPresent) {
+        String dest = "192.168.241.52";
+        cmd += "\"dial\", ";
+        cmd += "\"params\":";
+        cmd += String("\"") + dest + "\"";
+      } else {
+        cmd += "\"hangup\"";
+      }
+
+      cmd += ",\"token\":";
+      cmd += "\"42\"";
+      cmd +=  "}";
+
+      updateCallLed(!gCallPresent);
+      ESP_LOGI(TAG, "sipHandleCommand ... %s", cmd.c_str());
+      sipHandleCommand(&mqttClient, mqtt_id, cmd);
+      ESP_LOGI(TAG, "sipHandleCommand done");
+    } else {
+      ESP_LOGI(TAG, "sip not initialized, ignoring button pressed.");
+    }
+  } else {
+    gButton1Value = value;
+    updateCallLed(gCallPresent);
+  }
+}
 
 // Set time via NTP, as required for x.509 validation
 void setClock() 
@@ -212,24 +269,31 @@ void mqttCheckReconnect() {
 
 void setup(void) {
 
-    ESP_LOGI(TAG,"##########################################################");
-    ESP_LOGI(TAG, "Starting version " VERSION " (Build " BUILDNR ") ...");
-    ESP_LOGI(TAG,"##########################################################");
+    ESP_LOGI(TAG,"\n##########################################################\n"\
+                  "Starting version " VERSION " (Build " BUILDNR ") ...\n"\
+                  "##########################################################\n");
     checkWifiConnection();
-
     mqtt_id = String("esp32phone_") + WiFi.macAddress();
-    ESP_LOGI(TAG, "client: %s", mqtt_id.c_str());
-    ESP_LOGI(TAG, "mqtt socket timeout: %d", MQTT_SOCKET_TIMEOUT);
 
-    pinMode(testPin, OUTPUT);
+    initGpios();
+    if (digitalRead(BUTTON_PIN) == BUTTON_PRESSED) {
+      gDebugModeEnabled = true;
+    }
+
+    ESP_LOGI(TAG,"\n##########################################################\n"\
+                 "DeviceName: %s ...\n"\
+                 "DebugMode : %s ...\n"\
+                 "##########################################################\n",
+                mqtt_id.c_str(),
+                (gDebugModeEnabled?"Enabled":"Disabled"));
 
     //esp-idf based
-    //i2s_setup();
+    if (gDebugModeEnabled)
+      i2s_setup();
 }
 
 long lastMsg = 0;
 bool wifiConnected=false;
-bool sipinit=false;
 
 void loop() {
 
@@ -259,13 +323,17 @@ void loop() {
               mqttClient.publish(String(mqtt_id + "/version").c_str(), VERSION);
             }
         }
-        if (!sipinit) {
+        if (!gSipInit && !gDebugModeEnabled) {
           sipPhoneInit();
-          sipinit = true;
+          gSipInit = true;
         }
       }
     } else {
       wifiConnected = false;
+    }
+
+    if (!gDebugModeEnabled) {
+      checkButtonPressed();
     }
 
     checkWifiConnection();

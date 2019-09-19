@@ -30,7 +30,6 @@ mqttserver=cspiel.at
 mqttpass=jackson_oida
 mqttport=1883
 mqttuser=esp32phone
-mqttpass=
 
 
 mosquitto_pub -h $mqttserver -p $mqttport -t "$devicename/$topic"  -q 2 -i MyPcClient -u "esp32phone" -P "$mqttpass" -m "$msg"

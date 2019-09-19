@@ -348,7 +348,8 @@ void sipHandleCommand(PubSubClient* mqttClient, String mqtt_id, String msg)
 	oe_prm = String(cJSON_GetObjectItem(root,"params")->valuestring);
 	oe_tok = String(cJSON_GetObjectItem(root,"token")->valuestring);
 
-	if (oe_cmd.length()==0) {
+	if (!oe_cmd || !oe_prm || !oe_tok
+		|| oe_cmd.length()==0) {
 		ESP_LOGE(TAG, "failed to decode baresip command: %s", msg.c_str());
 		cJSON_Delete(root);
 		return;
