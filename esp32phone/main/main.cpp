@@ -316,17 +316,16 @@ void setup(void) {
 }
 
 long gLastMsg = -1;
-void mqttSendPing() 
+void mqttSendPing()
 {
+  if (!mqttClient.connected())
+    return;
   long now = millis();
-  if (now - gLastMsg > MQTT_SENDVERSION_INTERVAL) {
+  if ( gLastMsg ==-1 || (now - gLastMsg) > MQTT_SENDVERSION_INTERVAL) {
       gLastMsg = now;
-      if (mqttClient.connected()) {
-        mqttClient.publish(String(mqtt_id + "/version").c_str(), VERSION "-pre" BUILDNR );
-        mqttClient.loop();
-        mqttClient.publish(String(mqtt_id + "/localip").c_str(), WiFi.localIP().toString().c_str());
-        mqttClient.loop();
-      }
+      ESP_LOGI(TAG,"mqtt publish version...");
+      mqttClient.publish(String(mqtt_id + "/version").c_str(), VERSION "-pre" BUILDNR );
+      mqttClient.publish(String(mqtt_id + "/localip").c_str(), WiFi.localIP().toString().c_str());
   }
 }
 
@@ -354,13 +353,8 @@ void loop()
       mqttClient.loop();
 
       if (!currentlyUpdating) {
-        long now = millis();
-        if (now - lastMsg > MQTT_SENDVERSION_INTERVAL) {
-            lastMsg = now;
-            if (mqttClient.connected()) {
-              mqttClient.publish(String(mqtt_id + "/version").c_str(), VERSION "-pre" BUILDNR );
-            }
-        }
+        mqttSendPing();
+
         if (!gSipInit && !gDebugModeEnabled) {
           sipPhoneInit();
           gSipInit = true;
