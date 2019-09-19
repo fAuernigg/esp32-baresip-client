@@ -14,7 +14,7 @@ shift
 params="$@"
 token=42
 
-msg="{\"command\": \"$1\", \"params\": \"$@\", \"token\": \"$token\"}"
+msg="{\"command\": \"$cmd\", \"params\": \"$@\", \"token\": \"$token\"}"
 
 x=$(mosquitto_pub --help | grep "help" | tail -n 1)
 if [[ "x$x" == "x" ]] ; then
@@ -23,11 +23,12 @@ if [[ "x$x" == "x" ]] ; then
 	exit 1	
 fi
 
-echo "sending message: '$1'"
+echo -e "\nSending message: \n'$msg'\n"
 mqttserver=cspiel.at
 mqttpass=jackson_oida
 mqttport=1883
 mqttuser=esp32phone
 mqttpass=
+
 
 mosquitto_pub -h $mqttserver -p $mqttport -t "$devicename/$topic"  -q 2 -i MyPcClient -u "esp32phone" -P "$mqttpass" -m "$msg"
