@@ -140,7 +140,7 @@ int extern_baresip_config(struct conf *conf)
 }
 
 
-#define STACK_SIZE 32*1024
+#define STACK_SIZE 16*1024
 
 int sipPhoneInit()
 {
