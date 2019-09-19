@@ -124,6 +124,7 @@ void baresip_main(void* arg)
 int extern_baresip_config(struct conf *conf)
 {
 	conf_set(conf, "sip_listen", "0.0.0.0:5060");
+	conf_set(conf, "rtp_stats", "no");
 	conf_set(conf, "module", "g711");
 	conf_set(conf, "module", "aui2s\n");
 	conf_set(conf, "module_app", "menu\n");
@@ -137,6 +138,8 @@ int extern_baresip_config(struct conf *conf)
 	return config_parse_conf(conf_config(), conf);
 }
 
+
+#define STACK_SIZE 40*1024
 
 int sipPhoneInit()
 {
@@ -209,7 +212,8 @@ int sipPhoneInit()
 	ua_alloc(NULL, (char *) mbuf_buf(mb));
 	mem_deref(mb);
 
-	xTaskCreate(baresip_main, "baresipmain", 32*1024, NULL, 10, &baresip_thread);
+	info("%s stack size = %ld", __func__, STACK_SIZE);
+	xTaskCreate(baresip_main, "baresipmain", STACK_SIZE, NULL, 10, &baresip_thread);
 
 	ESP_LOGI(TAG, "Baresip initialization done");
 

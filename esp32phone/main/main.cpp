@@ -92,7 +92,7 @@ const char* mqtt_pass = "Xeps23v90489i§LKsecEDag_sdfikik§]";
 String mqtt_id;
 
 
-void checkWifiConnection() 
+void checkWifiConnection()
 {
   if (WiFiMulti.run() == WL_CONNECTED) {
     gWifiLastReconnectTime = millis();
@@ -225,14 +225,14 @@ void callback(char* topic, byte* msg, unsigned int length)
 
   } else if (cmd == "update") {
       ESP_LOGI(TAG, "update triggered... '%s'", message.c_str());
-      currentlyUpdating = true;     
+      currentlyUpdating = true;
 
       t_httpUpdate_return ret = HTTP_UPDATE_FAILED;
       if(message.indexOf("https://")==0) {
         ESP_LOGI(TAG, "Https ota update ");
         WiFiClientSecure client;
         client.setCACert(server_root_ca);
-        // OTA over ssl maybe slow 
+        // OTA over ssl maybe slow
         client.setTimeout(12000);
         ret = httpUpdate.update(client, message);
       } else {
@@ -267,9 +267,9 @@ void callback(char* topic, byte* msg, unsigned int length)
 }
 
 void mqttCheckReconnect() {
-  
+
   if (!mqttClient.connected() && (millis()-gMqttLastReconnectTime) > MQTT_CONNECT_RETRY) {
-    ESP_LOGI(TAG, "MQTT connection... %s:%d", 
+    ESP_LOGI(TAG, "MQTT connection... %s:%d",
         mqtt_server,mqtt_port);
     if (mqttClient.connect(mqtt_id.c_str(),
                           mqtt_user, mqtt_pass,

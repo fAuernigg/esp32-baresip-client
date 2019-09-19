@@ -18,7 +18,7 @@ echo "make MQTTSERVER=${mqttserver} MQTTPORT=${mqttport} MQTTUSER=esp32phone MQT
 
 if make MQTTSERVER=${mqttserver} MQTTPORT=${mqttport} MQTTUSER=esp32phone MQTTPASS=${mqttpass} NOTLS=1 BUILDNR=${v}
 then
-	echo "Deploying"
+	echo "Deploying build ${v}"
 	if scp build/app-template.bin ${deployserver}:/var/www/esp32phone
 	then
 		echo "Initiate Upgrade"
