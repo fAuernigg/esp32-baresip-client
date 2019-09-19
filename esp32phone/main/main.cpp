@@ -186,7 +186,7 @@ void checkButtonPressed()
 }
 
 // Set time via NTP, as required for x.509 validation
-void setClock() 
+void setClock()
 {
   configTime(0, 0, "pool.ntp.org", "time.nist.gov");  // UTC
 
@@ -240,7 +240,7 @@ void callback(char* topic, byte* msg, unsigned int length)
         ESP_LOGI(TAG, "Http ota update ");
         ret = httpUpdate.update(client, message);
       }
-      
+
       switch (ret) {
         case HTTP_UPDATE_FAILED:
           Serial.printf("HTTP_UPDATE_FAILED Error (%d): %s\n", httpUpdate.getLastError(), httpUpdate.getLastErrorString().c_str());
