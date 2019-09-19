@@ -341,7 +341,6 @@ void loop()
             lastMsg = now;
             if (mqttClient.connected()) {
               mqttClient.publish(String(mqtt_id + "/version").c_str(), VERSION "-pre" BUILDNR );
-              mqttClient.publish(String(mqtt_id + "/localip").c_str(), WiFi.localIP().toString().c_str());
             }
         }
         if (!gSipInit && !gDebugModeEnabled) {
