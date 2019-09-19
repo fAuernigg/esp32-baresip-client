@@ -33,7 +33,7 @@ long otaUpdateStart = 0;
 
 WiFiMulti WiFiMulti;
 
-bool currentlyUpdating=false;
+bool currentlyUpdating = false;
 
 // Add your MQTT Broker IP address
 #if defined MQTTSERVER && defined MQTTPORT
@@ -95,6 +95,7 @@ void checkWifiConnection()
   } else if ((millis()-gWifiLastReconnectTime) > WIFI_RECONNECT_TIME) {
     gWifiLastReconnectTime = millis();
     ESP_LOGE(TAG, "checkWifiConnection, reconnecting ...");
+  }
 
     // We start by connecting to a WiFi network
     if (gWifiLastReconnectTime!=-1) {
@@ -103,17 +104,14 @@ void checkWifiConnection()
     }
 
     WiFi.mode(WIFI_STA);
-      WiFiMulti.addAP(CONFIG_ESP_WIFI_SSID, CONFIG_ESP_WIFI_PASSWORD);
-  //    WiFiMulti.addAP("onesip", "wifi4us!");
-//    WiFiMulti.addAP("mrxa.espconfig", "hekmek33");
-//    WiFiMulti.addAP("CIWLAN", "C0mm3nd#");
-  }
+    WiFiMulti.addAP("mrxa.espconfig", "hekmek33");
 }
 
 
 
 // Set time via NTP, as required for x.509 validation
-void setClock() {
+void setClock() 
+{
   configTime(0, 0, "pool.ntp.org", "time.nist.gov");  // UTC
 
   Serial.print(F("Waiting for NTP time sync: "));
@@ -203,7 +201,7 @@ void mqttCheckReconnect() {
         mqtt_server,mqtt_port);
     if (mqttClient.connect(mqtt_id.c_str(),
                           mqtt_user, mqtt_pass,
-                          String("offline/" + mqtt_id).c_str(), 2, true, "offline",
+                          String("offline/" + mqtt_id).c_str(), 0, true, "offline",
                           false)) {
       ESP_LOGI(TAG, "connected, subscribing to topic %s/#", mqtt_id.c_str());
       // Subscribe
@@ -240,7 +238,6 @@ void loop() {
 
     if ((WiFiMulti.run() == WL_CONNECTED)) {
       if (!wifiConnected) {
-
         wifiConnected = true;
         ESP_LOGI(TAG, "WiFi connected IP address: %s", WiFi.localIP().toString().c_str());
         setClock();
@@ -254,7 +251,6 @@ void loop() {
         mqttClient.setCallback(callback);
         mqttClient.setServer(mqtt_server, mqtt_port);
       }
-
       mqttCheckReconnect();
       mqttClient.loop();
 

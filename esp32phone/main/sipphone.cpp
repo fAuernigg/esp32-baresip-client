@@ -390,10 +390,10 @@ void sipHandleCommand(PubSubClient* mqttClient, String mqtt_id, String msg)
 	cJSON_Delete(root);
 }
 
-
 #ifdef __cplusplus
 }
 #endif
+
 
 #else //ENABLE_baresip
 
