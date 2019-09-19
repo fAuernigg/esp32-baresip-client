@@ -1,3 +1,21 @@
+#!/bin/bash
+
+devicename=esp32phone_CC:50:E3:9C:53:CC
+topic="baresip/command"
+msg=""
+
+if [ $# -eq 0 ] ; then
+	echo "Error params: specify baresip command in format: cmd arg1 arg2"
+	exit 1
+fi
+
+cmd=$1
+shift
+params="$@"
+token=42
+
+msg="{\"command\": \"$1\", \"params\": \"$@\", \"token\": \"$token\"}"
+
 x=$(mosquitto_pub --help | grep "help" | tail -n 1)
 if [[ "x$x" == "x" ]] ; then
 	echo "Install mosquitto-clients first."
@@ -6,4 +24,10 @@ if [[ "x$x" == "x" ]] ; then
 fi
 
 echo "sending message: '$1'"
-mosquitto_pub -h mrxa.ga -p 8883 -t "esp32phone_24:0A:C4:03:A3:0C/cmd"  -q 2 --capath "/etc/ssl/certs" -i MyPcClient -u "mkabuild" -P "3A3ks34sddfksdfolsL3jhjsh__a}3{m" -m "$1"
+mqttserver=cspiel.at
+mqttpass=jackson_oida
+mqttport=1883
+mqttuser=esp32phone
+mqttpass=
+
+mosquitto_pub -h $mqttserver -p $mqttport -t "$devicename/$topic"  -q 2 -i MyPcClient -u "esp32phone" -P "$mqttpass" -m "$msg"
