@@ -131,19 +131,15 @@ void setClock()
   Serial.print(asctime(&timeinfo));
 }
 
-void callback(char* topic, byte* msg, unsigned int length) {
-
-  ESP_LOGI(TAG, "Message arrived on topic: %s", topic);
+void callback(char* topic, byte* msg, unsigned int length)
+{
   if (String(topic).indexOf(mqtt_id + "/") == -1)
     return;
 
   String cmd = String(topic).substring(mqtt_id.length()+1);
-  ESP_LOGI(TAG, "cmd: %s", cmd.c_str());
   String message;
-  for (int i = 0; i < (int) length; i++) {
-    Serial.print((char)msg[i]);
+  for (int i = 0; i < (int) length; i++)
     message += (char)msg[i];
-  }
 
   // If a message is received on the topic esp32phone_.../cmd
   // Changes the output state according to the message
