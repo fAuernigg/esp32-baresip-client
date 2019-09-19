@@ -9,6 +9,7 @@
 \usepackage{listings}
 \usepackage[utf8]{inputenc}
 \usepackage[official]{eurosym}
+\usepackage{graphicx}
 
 \usetheme{Hannover}
 
@@ -115,38 +116,33 @@ showstringspaces=false
 
 \maketitle
 
-\begin{frame} %\frametitle{Table of Contents}
-	\footnotesize
-	\tableofcontents
-\end{frame}
-
-\section{Introduction}
-
-\subsection{Baresip}
+\section{Baresip}
 \begin{frame}
 \frametitle{Baresip}
 \begin{itemize}
 \item SIP-stack for embedded devices
   
-\item BSD license
+\item light-weight and less dependencies
 
-\item platforms: linux, windows
-
-\item light-weight and less depencies
+\item runs on wonderful ETH-908
+\vspace{10mm}
+\item Goal: baresip on ESP32 3\$ chip
 \end{itemize}
 \end{frame}
 
 
- \subsection{ESP32}
+ \section{ESP32}
 
 \begin{frame}
+\frametitle{ESP32}
+\begin{figure}
+  \includegraphics[width=7cm]{esp32.jpeg}
+\end{figure}
 \begin{itemize}
- \item ESP-WROOM-32 WIFI+BT+BLE SoC system with freeRTOS
- \item Price \$6,00
- \item CPU: Xtensa dual-core (or single-core) 32-bit LX6 microprocessor, 
-   operating at 160 or 240 MHz
- \item Memory: 160 KiB static allocated + 160 KiB dynamic allocated DRAM
- \item Wi-Fi: 802.11 b/g/n
+ \item ESP-WROOM-32 with Wi-Fi or Ethernet
+ \item Price \$3,00
+ \item CPU: Xtensa dual-core 32-bit, clock 2 x 240 MHz
+ \item Memory: 320 KiB RAM (ESP32-WROVER 16MB RAM)
 \end{itemize}
 \end{frame}
 
