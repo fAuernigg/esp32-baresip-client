@@ -125,6 +125,7 @@ int extern_baresip_config(struct conf *conf)
 {
 	conf_set(conf, "sip_listen", "0.0.0.0:5060");
 	conf_set(conf, "rtp_stats", "no");
+	conf_set(conf, "rtcp_enable", "no");
 	conf_set(conf, "module", "g711");
 	conf_set(conf, "module", "aui2s\n");
 	conf_set(conf, "module_app", "menu\n");
@@ -139,7 +140,7 @@ int extern_baresip_config(struct conf *conf)
 }
 
 
-#define STACK_SIZE 40*1024
+#define STACK_SIZE 32*1024
 
 int sipPhoneInit()
 {
