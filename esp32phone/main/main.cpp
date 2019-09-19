@@ -141,13 +141,15 @@ void checkButtonPressed()
 
     if (gSipInit) {
       String cmd = "{" "\"command\":";
+      String dest = "192.168.241.52";
       if (!gCallPresent) {
-        String dest = "192.168.241.52";
         cmd += "\"dial\", ";
         cmd += "\"params\":";
         cmd += String("\"") + dest + "\"";
       } else {
         cmd += "\"hangup\"";
+        cmd += "\"params\":";
+        cmd += String("\"") + "\"";
       }
 
       cmd += ",\"token\":";
