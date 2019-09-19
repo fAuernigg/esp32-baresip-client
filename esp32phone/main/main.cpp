@@ -93,6 +93,7 @@ const char* mqtt_pass = "Xeps23v90489i§LKsecEDag_sdfikik§]";
 #endif
 String mqtt_id;
 
+String gButton1SipUrl = "192.168.241.13";
 
 void checkWifiConnection()
 {
@@ -161,11 +162,10 @@ void checkButtonPressed()
 
     if (gSipInit) {
       String cmd = "{" "\"command\":";
-      String dest = "192.168.241.13";
       if (!gCallPresent) {
         cmd += "\"dial\", ";
         cmd += "\"params\":";
-        cmd += String("\"") + dest + "\"";
+        cmd += String("\"") + gButton1SipUrl + "\"";
       } else {
         cmd += "\"hangup\", ";
         cmd += "\"params\":";
@@ -262,6 +262,9 @@ void callback(char* topic, byte* msg, unsigned int length)
       currentlyUpdating=false;
   } else if (cmd == "baresip/command") {
       sipHandleCommand(&mqttClient, mqtt_id, message);
+  } else if (cmd == "button/1/sipurl") {
+      ESP_LOGI(TAG, "gSipCallDestination update request to: %s", message.c_str());
+      gButton1SipUrl = message;
   } else {
     //ESP_LOGI(TAG, "unknown topic found (skipping): %s", topic);
   }
@@ -312,7 +315,21 @@ void setup(void) {
       i2s_setup();
 }
 
-long lastMsg = -1;
+long gLastMsg = -1;
+void mqttSendPing() 
+{
+  long now = millis();
+  if (now - gLastMsg > MQTT_SENDVERSION_INTERVAL) {
+      gLastMsg = now;
+      if (mqttClient.connected()) {
+        mqttClient.publish(String(mqtt_id + "/version").c_str(), VERSION "-pre" BUILDNR );
+        mqttClient.loop();
+        mqttClient.publish(String(mqtt_id + "/localip").c_str(), WiFi.localIP().toString().c_str());
+        mqttClient.loop();
+      }
+  }
+}
+
 bool wifiConnected=false;
 
 void loop() 
@@ -332,6 +349,7 @@ void loop()
         mqttClient.setCallback(callback);
         mqttClient.setServer(mqtt_server, mqtt_port);
       }
+
       mqttCheckReconnect();
       mqttClient.loop();
 
