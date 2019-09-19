@@ -92,19 +92,20 @@ void checkWifiConnection()
 {
   if (WiFiMulti.run() == WL_CONNECTED) {
     gWifiLastReconnectTime = millis();
+    return;
   } else if ((millis()-gWifiLastReconnectTime) > WIFI_RECONNECT_TIME) {
     gWifiLastReconnectTime = millis();
     ESP_LOGE(TAG, "checkWifiConnection, reconnecting ...");
   }
 
-    // We start by connecting to a WiFi network
-    if (gWifiLastReconnectTime!=-1) {
-      WiFi.disconnect(true);
-      delay(1000);
-    }
+  // We start by connecting to a WiFi network
+  if (gWifiLastReconnectTime!=-1) {
+    WiFi.disconnect(true);
+    delay(1000);
+  }
 
-    WiFi.mode(WIFI_STA);
-    WiFiMulti.addAP("mrxa.espconfig", "hekmek33");
+  WiFi.mode(WIFI_STA);
+  WiFiMulti.addAP("mrxa.espconfig", "hekmek33");
 }
 
 
@@ -201,7 +202,7 @@ void mqttCheckReconnect() {
         mqtt_server,mqtt_port);
     if (mqttClient.connect(mqtt_id.c_str(),
                           mqtt_user, mqtt_pass,
-                          String("offline/" + mqtt_id).c_str(), 0, true, "offline",
+                          String("offline/" + mqtt_id).c_str(), 2, true, "offline",
                           false)) {
       ESP_LOGI(TAG, "connected, subscribing to topic %s/#", mqtt_id.c_str());
       // Subscribe
