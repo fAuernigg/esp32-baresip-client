@@ -48,9 +48,25 @@ static void ua_exit_handler(void *arg)
 	re_cancel();
 }
 
+extern void setCallState(bool value);
+
 static void ua_event_handler(struct ua *ua, enum ua_event ev,
 			     struct call *call, const char *prm, void *arg)
 {
+	switch (ev) {
+		case UA_EVENT_CALL_INCOMING:
+		case UA_EVENT_CALL_OUTGOING:
+		case UA_EVENT_CALL_RINGING:
+		case UA_EVENT_CALL_PROGRESS:
+		case UA_EVENT_CALL_ESTABLISHED:
+			setCallState(1);
+			break;
+		case UA_EVENT_CALL_CLOSED:
+			setCallState(0);
+			break;
+		default:
+			break;
+	}
 	re_printf("ua event: %s\n", uag_event_str(ev));
 }
 

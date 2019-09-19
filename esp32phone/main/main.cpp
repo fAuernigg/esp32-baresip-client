@@ -124,12 +124,30 @@ void initGpios() {
   digitalWrite(ONBOARDLED_PIN, 0);
 }
 
-void updateCallLed(bool value)
+bool gCallLedBlinkState=false;
+long gBlinkFrequency = 500;
+long gLastBlinkTime = -1;
+
+void updateCallState()
 {
-  if (gCallPresent != value) {
-    gCallPresent = value;
-    digitalWrite(ONBOARDLED_PIN, (int) gCallPresent);
+  bool state = gCallLedBlinkState;
+  if (!gCallPresent) {
+    state = false;
+  } else if ((millis()-gLastBlinkTime) > gBlinkFrequency) {
+    state = !gCallLedBlinkState;
+    gLastBlinkTime = millis();
   }
+
+  if (state != gCallLedBlinkState)
+    digitalWrite(ONBOARDLED_PIN, state);
+
+  gCallLedBlinkState = state;
+}
+
+void setCallState(bool value)
+{
+  if (gCallPresent != value)
+    gCallPresent = value;
 }
 
 void checkButtonPressed()
@@ -156,7 +174,6 @@ void checkButtonPressed()
       cmd += "\"42\"";
       cmd +=  "}";
 
-      updateCallLed(!gCallPresent);
       ESP_LOGI(TAG, "sipHandleCommand ... %s", cmd.c_str());
       sipHandleCommand(&mqttClient, mqtt_id, cmd);
       ESP_LOGI(TAG, "sipHandleCommand done");
@@ -165,7 +182,6 @@ void checkButtonPressed()
     }
   } else {
     gButton1Value = value;
-    updateCallLed(gCallPresent);
   }
 }
 
@@ -339,5 +355,6 @@ void loop() {
     }
 
     checkWifiConnection();
+    updateCallState();
 }
 
