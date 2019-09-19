@@ -1,13 +1,15 @@
 #!/bin/bash
 
-devicename=esp32phone_CC:50:E3:9C:53:CC
+if [ $# -eq 0 ] ; then
+	echo "Error params: specify baresip command in format: \"esp32phone_[MAC]\" cmd arg1 arg2"
+	exit 1
+fi
+
+devicename=$1
+shift
 topic="baresip/command"
 msg=""
 
-if [ $# -eq 0 ] ; then
-	echo "Error params: specify baresip command in format: cmd arg1 arg2"
-	exit 1
-fi
 
 cmd=$1
 shift
