@@ -37,6 +37,8 @@ WiFiMulti WiFiMulti;
 #define BUTTON_PIN 4
 #define BUTTON_PRESSED 0
 
+#define MQTT_SENDVERSION_INTERVAL (3*60*1000)
+
 bool currentlyUpdating = false;
 bool gDebugModeEnabled = false;
 bool gSipInit=false;
@@ -310,11 +312,11 @@ void setup(void) {
       i2s_setup();
 }
 
-long lastMsg = 0;
+long lastMsg = -1;
 bool wifiConnected=false;
 
-void loop() {
-
+void loop() 
+{
     if ((WiFiMulti.run() == WL_CONNECTED)) {
       if (!wifiConnected) {
         wifiConnected = true;
@@ -335,10 +337,10 @@ void loop() {
 
       if (!currentlyUpdating) {
         long now = millis();
-        if (now - lastMsg > 30000) {
+        if (now - lastMsg > MQTT_SENDVERSION_INTERVAL) {
             lastMsg = now;
             if (mqttClient.connected()) {
-              mqttClient.publish(String(mqtt_id + "/version").c_str(), VERSION);
+              mqttClient.publish(String(mqtt_id + "/version").c_str(), VERSION "-pre" BUILDNR );
             }
         }
         if (!gSipInit && !gDebugModeEnabled) {
