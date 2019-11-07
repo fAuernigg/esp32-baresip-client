@@ -1,0 +1,160 @@
+\documentclass{beamer}
+
+%\usepackage[T1]{fontenc}
+%\usepackage[latin1]{inputenc}
+%\usepackage{pst-uml}
+\usepackage{underscore}
+
+\usepackage{xcolor}
+\usepackage{listings}
+\usepackage[utf8]{inputenc}
+\usepackage[official]{eurosym}
+\usepackage{graphicx}
+
+\usetheme{Hannover}
+
+\title{10\$ Sip Phone Prototype}
+\subtitle{Baresip on ESP32}
+\author{Christian Spielberger\\Franz Auernigg}
+\date{September 19, 2019}
+
+\newcommand\listingsfont[1]{\fontsize{4}{6}\color{#1}\tt}
+\newcommand\listingsfontbf[1]{\listingsfont{#1}\bfseries}
+\newcommand\listingsfontmd[1]{\listingsfont{#1}\mdseries}
+
+% Python environment
+\lstnewenvironment{python}[1][]%
+{%
+\lstset{
+language=Python,
+basicstyle=\listingsfont{black},
+otherkeywords={self},
+keywordstyle=\listingsfontbf{blue},
+emph={__init__},
+emphstyle=\listingsfontbf{red},
+stringstyle=\listingsfont{red},
+showstringspaces=false
+}
+\lstset{#1}%
+}%
+{}
+
+\newcommand\YAMLcolonstyle{\listingsfontmd{red}}
+\newcommand\YAMLkeystyle{\listingsfontbf{black}}
+\newcommand\YAMLvaluestyle{\listingsfontmd{blue}}
+
+\newcommand\YAMLtypestyle[1]{{\listingsfontmd{orange}{#1}}}
+
+\makeatletter
+\lst@AddToHook{EveryLine}{\ifx\lst@languageyaml\YAMLkeystyle\fi} % switch to key style at EOL
+\makeatother
+\newcommand\ProcessThreeDashes{\llap{\color{cyan}\mdseries-{-}-}}
+
+% YAML environment
+\lstnewenvironment{yaml}[1][]%
+{%
+\lstdefinelanguage{yaml}{
+  keywords={true,false,null,y,n, !u8, !u32},
+  keywordstyle=\color{darkgray}\bfseries,
+  basicstyle=\YAMLkeystyle,                                 % assuming a key comes first
+  sensitive=false,
+  comment=[l]{\#},
+  morecomment=[s]{/*}{*/},
+  commentstyle=\color{purple}\ttfamily,
+  stringstyle=\YAMLvaluestyle\ttfamily,
+  moredelim=[l][\color{orange}]{\&},
+  moredelim=[l][\color{magenta}]{*},
+  moredelim=**[il][\listingsfontmd{red}{:}\YAMLvaluestyle]{:},   % switch to value style at :
+  morestring=[b]',
+  morestring=[b]",
+  literate = {!u8}{{\YAMLtypestyle{!u8}}}3
+  			 {!u16}{{\YAMLtypestyle{!u16}}}4
+  			 {!u32}{{\YAMLtypestyle{!u32}}}4
+  			 {!array}{{\YAMLtypestyle{!array}}}6
+  			 {!u8-array}{{\YAMLtypestyle{!u8-array}}}9
+  			 {!type-ref}{{\YAMLtypestyle{!type-ref}}}9
+  			 {<omitted>}{{\listingsfontmd{red}{not shown}}}9
+             {|}{{\textcolor{red}\textbar}}1 
+             {\ -\ }{{\mdseries\ -\ }}3,
+}
+\lstset{language=yaml, #1}%
+}%
+{}
+
+% Bash environment
+\lstnewenvironment{bash}[1][]%
+{%
+\lstset{language=Bash,
+		basicstyle=\listingsfontmd{black},
+		keywordstyle=\listingsfontbf{black},
+		literate = {\$}{{{\listingsfontbf{blue}\$}}}1,
+		breaklines = true,
+		showstringspaces=false
+		}
+\lstset{#1}
+}%
+{}
+
+% Layer diagram definitions
+\definecolor{layerfill}{RGB}{20,20,20}
+\definecolor{scmdfill}{RGB}{20,200,120}
+\definecolor{cmdfill}{RGB}{20,200,0}
+\definecolor{testsuitefill}{RGB}{200,0,0}
+\definecolor{frameworkfill}{RGB}{0,100,255}
+\definecolor{yamlfill}{RGB}{250,100,1}
+
+\newcommand\widernode[5][widebox]{
+  \node[
+    #1,
+    fit={(#2) (#3)},
+    label=center:{\sffamily\bfseries\color{white}#4}] (#5) {};
+}
+
+\begin{document}
+
+\inputencoding{utf8}
+
+\maketitle
+
+\section{Baresip}
+\begin{frame}
+\frametitle{Baresip}
+\begin{itemize}
+\item SIP-stack for embedded devices
+  
+\item light-weight and less dependencies
+
+\item runs on wonderful ETH-908
+\vspace{10mm}
+\item Goal: baresip on ESP32 3\$ chip
+\item Config: per cloud (mqtt)
+\end{itemize}
+\end{frame}
+
+
+ \section{ESP32}
+
+\begin{frame}
+\frametitle{ESP32}
+\begin{figure}
+  \includegraphics[width=7cm]{esp32.jpeg}
+\end{figure}
+\begin{itemize}
+ \item ESP-WROOM-32 with Wi-Fi or Ethernet
+ \item Price \$3,00
+ \item CPU: Xtensa dual-core 32-bit, clock 2 x 240 MHz
+ \item Memory: 320 KiB RAM (ESP32-WROVER 16MB RAM)
+\end{itemize}
+\end{frame}
+
+ \section{Challenges}
+\begin{frame}
+\frametitle{Challenges}
+\begin{itemize}
+ \item Build for free-RTOS
+ \item network interface
+ \item i2s driver for baresip
+ \item low memory
+\end{itemize}
+\end{frame}
+\end{document}

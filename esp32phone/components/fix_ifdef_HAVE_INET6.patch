@@ -1,0 +1,17 @@
+diff --git a/src/net.c b/src/net.c
+index be1391a..87c0482 100644
+--- a/src/net.c
++++ b/src/net.c
+@@ -510,8 +510,11 @@ const char* net_ifname6(const struct network *net)
+ {
+ 	if (!net)
+ 		return NULL;
+-
++#ifdef HAVE_INET6
+ 	return net->ifname6;
++#else
++	return NULL;
++#endif
+ }
+ 
+ 
