@@ -44,7 +44,7 @@ extern const struct mod_export exports_menu;
 /*extern const struct mod_export exports_dtls_srtp;*/
 /*extern const struct mod_export exports_evdev;*/
 extern const struct mod_export exports_g711;
-extern const struct mod_export exports_aui2s;
+extern const struct mod_export exports_i2s;
 /*extern const struct mod_export exports_g722;*/
 /*extern const struct mod_export exports_g726;*/
 /*extern const struct mod_export exports_gst;*/
@@ -107,7 +107,7 @@ const struct mod_export *mod_table[] = {
 /*  &exports_dtls_srtp,*/
 /*  &exports_evdev,*/
   &exports_g711,
-  &exports_aui2s,
+  &exports_i2s,
 /*  &exports_g722,*/
 /*  &exports_g726,*/
 /*  &exports_gst,*/

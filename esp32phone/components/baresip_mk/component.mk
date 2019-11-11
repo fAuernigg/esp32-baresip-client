@@ -4,7 +4,7 @@ COMPONENT_ADD_INCLUDEDIRS := ../baresip/include
 COMPONENT_SRCDIRS = \
 ../baresip/src \
 ../baresip/modules/g711 \
-../baresip/modules/aui2s \
+../baresip/modules/i2s \
 ../baresip/modules/stdio \
 ../baresip/modules/menu \
 .
