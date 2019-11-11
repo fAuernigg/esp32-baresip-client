@@ -126,12 +126,12 @@ int extern_baresip_config(struct conf *conf)
 	conf_set(conf, "rtp_stats", "no");
 	conf_set(conf, "rtcp_enable", "no");
 	conf_set(conf, "module", "g711");
-	conf_set(conf, "module", "aui2s\n");
+	conf_set(conf, "module", "i2s\n");
 	conf_set(conf, "module_app", "menu\n");
 
-	conf_set(conf, "audio_player", "aui2s\n");
-	conf_set(conf, "audio_source", "aui2s\n");
-	conf_set(conf, "audio_alert", "aui2s\n");
+	conf_set(conf, "audio_player", "i2s\n");
+	conf_set(conf, "audio_source", "i2s\n");
+	conf_set(conf, "audio_alert", "i2s\n");
 	conf_set(conf, "audio_channels", "1\n");
 	conf_set(conf, "audio_srate", "8000\n");
 
