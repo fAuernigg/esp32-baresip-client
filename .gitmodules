@@ -8,14 +8,3 @@
 	path = esp-idf
 	url = https://github.com/espressif/esp-idf.git
 	branch = release/v3.2
-[submodule "esp32phone/components/rem"]
-	path = esp32phone/components/rem
-	url = https://github.com/creytiv/rem.git
-[submodule "esp32phone/components/baresip"]
-	path = esp32phone/components/baresip
-	url = https://github.com/cspiel1/baresip.git
-	branch = esp32
-[submodule "esp32phone/components/re"]
-	path = esp32phone/components/re
-	url = https://github.com/cspiel1/re.git
-	branch = esp32
