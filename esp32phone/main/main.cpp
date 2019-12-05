@@ -29,7 +29,8 @@ long otaUpdateStart = 0;
 #include <StreamString.h>
 #include <HTTPUpdate.h>
 #include "i2shandler.h"
-#include "sipphone.h"
+#include "esp-baresip.h"
+#include "arduino_net.h"
 
 WiFiMulti WiFiMulti;
 
@@ -115,6 +116,8 @@ void checkWifiConnection()
   WiFi.mode(WIFI_STA);
   // default config wlan
   WiFiMulti.addAP("espconfig", "Myespconf554432");
+  WiFiMulti.addAP(CONFIG_ESP_WIFI_SSID, CONFIG_ESP_WIFI_PASSWORD);
+
 }
 
 bool gCallPresent = false;
@@ -136,7 +139,7 @@ long gLastBlinkTime = -1;
 void updateStatusLed()
 {
   bool state = gCallLedBlinkState;
-  
+
   if (!gCallPresent) {
     state = gWifiConnected;
   } else if ((millis()-gLastBlinkTime) > gBlinkFrequency) {
@@ -155,6 +158,8 @@ void setCallState(bool value)
   if (gCallPresent != value)
     gCallPresent = value;
 }
+
+void cbBaresipCmdResponse (const char *topic, const char *msg);
 
 void checkButtonPressed()
 {
@@ -180,7 +185,7 @@ void checkButtonPressed()
       cmd +=  "}";
 
       ESP_LOGI(TAG, "sipHandleCommand ... %s", cmd.c_str());
-      sipHandleCommand(&mqttClient, mqtt_id, cmd);
+      sipHandleCommand(cbBaresipCmdResponse, mqtt_id.c_str(), cmd.c_str());
       ESP_LOGI(TAG, "sipHandleCommand done");
     } else {
       ESP_LOGI(TAG, "sip not initialized, ignoring button pressed.");
@@ -209,6 +214,11 @@ void setClock()
   gmtime_r(&now, &timeinfo);
   Serial.print(F("Current time: "));
   Serial.print(asctime(&timeinfo));
+}
+
+void cbBaresipCmdResponse (const char *topic, const char *msg)
+{
+	  mqttClient.publish(topic, msg);
 }
 
 void callback(char* topic, byte* msg, unsigned int length)
@@ -268,7 +278,7 @@ void callback(char* topic, byte* msg, unsigned int length)
       delay(500);
       ESP.restart();
   } else if (cmd == "baresip/command") {
-      sipHandleCommand(&mqttClient, mqtt_id, message);
+      sipHandleCommand(cbBaresipCmdResponse, mqtt_id.c_str(), message.c_str());
   } else if (cmd == "button/1/sipurl") {
       ESP_LOGI(TAG, "gSipCallDestination update request to: %s", message.c_str());
       gButton1SipUrl = message;
@@ -365,7 +375,7 @@ void loop()
         mqttSendPing();
 
         if (!gSipInit && !gDebugModeEnabled) {
-          sipPhoneInit();
+          sipPhoneInit(ard_get_network_address);
           gSipInit = true;
         }
       }
